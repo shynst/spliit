@@ -44,6 +44,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { match } from 'ts-pattern'
 import { extractCategoryFromTitle } from './expense-form-actions'
+import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 
 export type Props = {
   group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
@@ -51,6 +52,7 @@ export type Props = {
   categories: NonNullable<Awaited<ReturnType<typeof getCategories>>>
   onSubmit: (values: ExpenseFormValues) => Promise<void>
   onDelete?: () => Promise<void>
+  runtimeFeatureFlags: RuntimeFeatureFlags
 }
 
 export function ExpenseForm({
@@ -59,6 +61,7 @@ export function ExpenseForm({
   categories,
   onSubmit,
   onDelete,
+  runtimeFeatureFlags,
 }: Props) {
   const isCreate = expense === undefined
   const searchParams = useSearchParams()
@@ -160,7 +163,7 @@ export function ExpenseForm({
                       {...field}
                       onBlur={async () => {
                         field.onBlur() // avoid skipping other blur event listeners since we overwrite `field`
-                        if (process.env.NEXT_PUBLIC_ENABLE_CATEGORY_EXTRACT) {
+                        if (runtimeFeatureFlags.enableCategoryExtract) {
                           setCategoryLoading(true)
                           const { categoryId } = await extractCategoryFromTitle(
                             field.value,
@@ -540,7 +543,7 @@ export function ExpenseForm({
           </CardContent>
         </Card>
 
-        {process.env.NEXT_PUBLIC_ENABLE_EXPENSE_DOCUMENTS && (
+        {runtimeFeatureFlags.enableExpenseDocuments && (
           <Card className="mt-4">
             <CardHeader>
               <CardTitle className="flex justify-between">
