@@ -35,16 +35,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getCategories, getExpense, getGroup, randomId } from '@/lib/api'
+import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { match } from 'ts-pattern'
 import { extractCategoryFromTitle } from './expense-form-actions'
-import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 
 export type Props = {
   group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
@@ -586,6 +587,9 @@ export function ExpenseForm({
               Delete
             </AsyncButton>
           )}
+          <Button variant="ghost" asChild>
+            <Link href={`/groups/${group.id}`}>Cancel</Link>
+          </Button>
         </div>
       </form>
     </Form>

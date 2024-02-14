@@ -10,4 +10,6 @@ export async function getRuntimeFeatureFlags() {
   }
 }
 
-export type RuntimeFeatureFlags = Awaited<ReturnType<typeof getRuntimeFeatureFlags>>
+export type RuntimeFeatureFlags = Awaited<
+  ReturnType<typeof getRuntimeFeatureFlags>
+>
