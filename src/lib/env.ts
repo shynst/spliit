@@ -1,9 +1,8 @@
 import { ZodIssueCode, z } from 'zod'
 
-const tryParsingAsBool = (val: unknown): boolean | unknown => {
-  return (typeof val === 'string') 
-    ? ['true', 'yes', '1', 'on'].includes(val.toLowerCase())
-    : val;
+const interpretEnvVarAsBool = (val: unknown): boolean => {
+  if (typeof val !== 'string') return false
+  return ['true', 'yes', '1', 'on'].includes(val.toLowerCase())
 }
 
 const envSchema = z
@@ -18,14 +17,23 @@ const envSchema = z
           ? `https://${process.env.VERCEL_URL}`
           : 'http://localhost:3000',
       ),
-    NEXT_PUBLIC_ENABLE_EXPENSE_DOCUMENTS: z.preprocess(tryParsingAsBool, z.boolean().default(false)),
+    NEXT_PUBLIC_ENABLE_EXPENSE_DOCUMENTS: z.preprocess(
+      interpretEnvVarAsBool,
+      z.boolean().default(false),
+    ),
     S3_UPLOAD_KEY: z.string().optional(),
     S3_UPLOAD_SECRET: z.string().optional(),
     S3_UPLOAD_BUCKET: z.string().optional(),
     S3_UPLOAD_REGION: z.string().optional(),
     S3_UPLOAD_ENDPOINT: z.string().optional(),
-    NEXT_PUBLIC_ENABLE_RECEIPT_EXTRACT: z.preprocess(tryParsingAsBool, z.boolean().default(false)),
-    NEXT_PUBLIC_ENABLE_CATEGORY_EXTRACT: z.preprocess(tryParsingAsBool, z.boolean().default(false)),
+    NEXT_PUBLIC_ENABLE_RECEIPT_EXTRACT: z.preprocess(
+      interpretEnvVarAsBool,
+      z.boolean().default(false),
+    ),
+    NEXT_PUBLIC_ENABLE_CATEGORY_EXTRACT: z.preprocess(
+      interpretEnvVarAsBool,
+      z.boolean().default(false),
+    ),
     OPENAI_API_KEY: z.string().optional(),
   })
   .superRefine((env, ctx) => {
