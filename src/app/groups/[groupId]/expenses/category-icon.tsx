@@ -1,5 +1,6 @@
 import { Category } from '@prisma/client'
 import {
+  Apple,
   Armchair,
   Baby,
   Banknote,
@@ -9,35 +10,36 @@ import {
   CarTaxiFront,
   Cat,
   Clapperboard,
-  CupSoda,
+  Cog,
   Dices,
-  Dumbbell,
-  Eraser,
+  Dribbble,
+  Droplets,
   FerrisWheel,
   Fuel,
   Gift,
+  HandPlatter,
   Home,
   Hotel,
-  Lamp,
   Landmark,
   LibraryBig,
+  Lightbulb,
   LucideIcon,
   LucideProps,
-  Martini,
   Music,
-  ParkingMeter,
-  Phone,
-  PiggyBank,
+  ParkingSquare,
+  Percent,
   Plane,
   Plug,
-  PlugZap,
   Shirt,
   ShoppingCart,
+  Sparkles,
+  SprayCan,
   Stethoscope,
   ThermometerSun,
   Train,
   Trash,
   Utensils,
+  Wifi,
   Wine,
   Wrench,
 } from 'lucide-react'
@@ -65,11 +67,11 @@ function getCategoryIcon(category: string): LucideIcon {
     case 'Entertainment/Music':
       return Music
     case 'Entertainment/Sports':
-      return Dumbbell
+      return Dribbble
     case 'Food and Drink/Food and Drink':
-      return Utensils
+      return Apple
     case 'Food and Drink/Dining Out':
-      return Martini
+      return Utensils
     case 'Food and Drink/Groceries':
       return ShoppingCart
     case 'Food and Drink/Liquor':
@@ -81,7 +83,7 @@ function getCategoryIcon(category: string): LucideIcon {
     case 'Home/Furniture':
       return Armchair
     case 'Home/Household Supplies':
-      return Lamp
+      return SprayCan
     case 'Home/Maintenance':
       return Wrench
     case 'Home/Mortgage':
@@ -89,9 +91,9 @@ function getCategoryIcon(category: string): LucideIcon {
     case 'Home/Pets':
       return Cat
     case 'Home/Rent':
-      return PiggyBank
+      return Home
     case 'Home/Services':
-      return Wrench
+      return HandPlatter
     case 'Life/Childcare':
       return Baby
     case 'Life/Clothing':
@@ -105,7 +107,7 @@ function getCategoryIcon(category: string): LucideIcon {
     case 'Life/Medical Expenses':
       return Stethoscope
     case 'Life/Taxes':
-      return Banknote
+      return Percent
     case 'Transportation/Transportation':
       return Bus
     case 'Transportation/Bicycle':
@@ -119,25 +121,25 @@ function getCategoryIcon(category: string): LucideIcon {
     case 'Transportation/Hotel':
       return Hotel
     case 'Transportation/Parking':
-      return ParkingMeter
+      return ParkingSquare
     case 'Transportation/Plane':
       return Plane
     case 'Transportation/Taxi':
       return CarTaxiFront
     case 'Utilities/Utilities':
-      return Banknote
+      return Cog
     case 'Utilities/Cleaning':
-      return Eraser
+      return Sparkles
     case 'Utilities/Electricity':
-      return PlugZap
+      return Lightbulb
     case 'Utilities/Heat/Gas':
       return ThermometerSun
     case 'Utilities/Trash':
       return Trash
     case 'Utilities/TV/Phone/Internet':
-      return Phone
+      return Wifi
     case 'Utilities/Water':
-      return CupSoda
+      return Droplets
     default:
       return Banknote
   }
