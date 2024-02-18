@@ -12,9 +12,10 @@ type Props = {
   expense: Awaited<ReturnType<typeof getGroupExpenses>>[number]
   currency: string
   groupId: string
+  numMembers: number
 }
 
-export function ExpenseCard({ expense, currency, groupId }: Props) {
+export function ExpenseCard({ expense, currency, groupId, numMembers }: Props) {
   const router = useRouter()
 
   return (
@@ -37,13 +38,14 @@ export function ExpenseCard({ expense, currency, groupId }: Props) {
           {expense.title}
         </div>
         <div className="text-xs text-muted-foreground">
-          Paid by <strong>{expense.paidBy.name}</strong> for{' '}
-          {expense.paidFor.map((paidFor, index) => (
-            <Fragment key={index}>
-              {index !== 0 && <>, </>}
-              <strong>{paidFor.participant.name}</strong>
-            </Fragment>
-          ))}
+          Paid by {expense.paidBy.name} for{' '}
+          {expense.paidFor.length < numMembers
+            ? expense.paidFor.map((paidFor, index) => (
+                <Fragment key={index}>
+                  {(index > 0 ? ', ' : '') + paidFor.participant.name}
+                </Fragment>
+              ))
+            : 'all'}
         </div>
       </div>
       <div className="flex flex-col justify-between items-end">

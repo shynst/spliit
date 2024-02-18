@@ -155,6 +155,7 @@ export function ExpenseList({
                 expense={expense}
                 currency={currency}
                 groupId={groupId}
+                numMembers={participants.length}
               />
             ))}
           </div>
