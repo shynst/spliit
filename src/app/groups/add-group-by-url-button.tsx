@@ -27,25 +27,25 @@ export function AddGroupByUrlButton({ reload }: Props) {
       <PopoverTrigger asChild>
         <Button variant="secondary">
           {/* <Plus className="w-4 h-4 mr-2" /> */}
-          <>Add by URL</>
+          <>Add by URL or ID</>
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align={isDesktop ? 'end' : 'start'}
         className="[&_p]:text-sm flex flex-col gap-3"
       >
-        <h3 className="font-bold">Add a group by URL</h3>
+        <h3 className="font-bold">Add a group by URL or group ID</h3>
         <p>
-          If a group was shared with you, you can paste its URL here to add it
-          to your list.
+          If a group was shared with you, you can paste its URL or group ID here
+          to add it to your list.
         </p>
         <form
           className="flex gap-2"
           onSubmit={async (event) => {
             event.preventDefault()
-            const [, groupId] =
+            const [, , groupId] =
               url.match(
-                new RegExp(`${window.location.origin}/groups/([^/]+)`),
+                new RegExp(`^(${window.location.origin}/groups/)?([^/]+)`),
               ) ?? []
             setPending(true)
             const group = groupId ? await getGroupInfoAction(groupId) : null
@@ -61,9 +61,7 @@ export function AddGroupByUrlButton({ reload }: Props) {
           }}
         >
           <Input
-            type="url"
             required
-            placeholder="https://spliit.app/..."
             className="flex-1 text-base"
             value={url}
             disabled={pending}
