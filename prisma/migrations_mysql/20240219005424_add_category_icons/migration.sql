@@ -1,0 +1,48 @@
+-- AlterTable
+ALTER TABLE `Category` CHANGE `id` `id` INT(11) NOT NULL;
+ALTER TABLE `Category` ADD `icon` VARCHAR(191) NOT NULL AFTER `name`;
+
+-- Insert category icons
+UPDATE `Category` SET `icon` = 'Banknote' WHERE `Category`.`id` = 0;
+UPDATE `Category` SET `icon` = 'Banknote' WHERE `Category`.`id` = 1;
+UPDATE `Category` SET `icon` = 'FerrisWheel' WHERE `Category`.`id` = 2;
+UPDATE `Category` SET `icon` = 'Dices' WHERE `Category`.`id` = 3;
+UPDATE `Category` SET `icon` = 'Clapperboard' WHERE `Category`.`id` = 4;
+UPDATE `Category` SET `icon` = 'Music' WHERE `Category`.`id` = 5;
+UPDATE `Category` SET `icon` = 'Dribbble' WHERE `Category`.`id` = 6;
+UPDATE `Category` SET `icon` = 'Apple' WHERE `Category`.`id` = 7;
+UPDATE `Category` SET `icon` = 'Utensils' WHERE `Category`.`id` = 8;
+UPDATE `Category` SET `icon` = 'ShoppingCart' WHERE `Category`.`id` = 9;
+UPDATE `Category` SET `icon` = 'Wine' WHERE `Category`.`id` = 10;
+UPDATE `Category` SET `icon` = 'Home' WHERE `Category`.`id` = 11;
+UPDATE `Category` SET `icon` = 'Plug' WHERE `Category`.`id` = 12;
+UPDATE `Category` SET `icon` = 'Armchair' WHERE `Category`.`id` = 13;
+UPDATE `Category` SET `icon` = 'SprayCan' WHERE `Category`.`id` = 14;
+UPDATE `Category` SET `icon` = 'Wrench' WHERE `Category`.`id` = 15;
+UPDATE `Category` SET `icon` = 'Landmark' WHERE `Category`.`id` = 16;
+UPDATE `Category` SET `icon` = 'Cat' WHERE `Category`.`id` = 17;
+UPDATE `Category` SET `icon` = 'Home' WHERE `Category`.`id` = 18;
+UPDATE `Category` SET `icon` = 'HandPlatter' WHERE `Category`.`id` = 19;
+UPDATE `Category` SET `icon` = 'Baby' WHERE `Category`.`id` = 20;
+UPDATE `Category` SET `icon` = 'Shirt' WHERE `Category`.`id` = 21;
+UPDATE `Category` SET `icon` = 'LibraryBig' WHERE `Category`.`id` = 22;
+UPDATE `Category` SET `icon` = 'Gift' WHERE `Category`.`id` = 23;
+UPDATE `Category` SET `icon` = 'Landmark' WHERE `Category`.`id` = 24;
+UPDATE `Category` SET `icon` = 'Stethoscope' WHERE `Category`.`id` = 25;
+UPDATE `Category` SET `icon` = 'Percent' WHERE `Category`.`id` = 26;
+UPDATE `Category` SET `icon` = 'Bus' WHERE `Category`.`id` = 27;
+UPDATE `Category` SET `icon` = 'Bike' WHERE `Category`.`id` = 28;
+UPDATE `Category` SET `icon` = 'Train' WHERE `Category`.`id` = 29;
+UPDATE `Category` SET `icon` = 'Car' WHERE `Category`.`id` = 30;
+UPDATE `Category` SET `icon` = 'Fuel' WHERE `Category`.`id` = 31;
+UPDATE `Category` SET `icon` = 'Hotel' WHERE `Category`.`id` = 32;
+UPDATE `Category` SET `icon` = 'ParkingSquare' WHERE `Category`.`id` = 33;
+UPDATE `Category` SET `icon` = 'Plane' WHERE `Category`.`id` = 34;
+UPDATE `Category` SET `icon` = 'CarTaxiFront' WHERE `Category`.`id` = 35;
+UPDATE `Category` SET `icon` = 'Cog' WHERE `Category`.`id` = 36;
+UPDATE `Category` SET `icon` = 'Sparkles' WHERE `Category`.`id` = 37;
+UPDATE `Category` SET `icon` = 'Lightbulb' WHERE `Category`.`id` = 38;
+UPDATE `Category` SET `icon` = 'ThermometerSun' WHERE `Category`.`id` = 39;
+UPDATE `Category` SET `icon` = 'Trash' WHERE `Category`.`id` = 40;
+UPDATE `Category` SET `icon` = 'Wifi' WHERE `Category`.`id` = 41;
+UPDATE `Category` SET `icon` = 'Droplets' WHERE `Category`.`id` = 42;

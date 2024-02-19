@@ -1,146 +1,59 @@
 import { Category } from '@prisma/client'
-import {
-  Apple,
-  Armchair,
-  Baby,
-  Banknote,
-  Bike,
-  Bus,
-  Car,
-  CarTaxiFront,
-  Cat,
-  Clapperboard,
-  Cog,
-  Dices,
-  Dribbble,
-  Droplets,
-  FerrisWheel,
-  Fuel,
-  Gift,
-  HandPlatter,
-  Home,
-  Hotel,
-  Landmark,
-  LibraryBig,
-  Lightbulb,
-  LucideIcon,
-  LucideProps,
-  Music,
-  ParkingSquare,
-  Percent,
-  Plane,
-  Plug,
-  Shirt,
-  ShoppingCart,
-  Sparkles,
-  SprayCan,
-  Stethoscope,
-  ThermometerSun,
-  Train,
-  Trash,
-  Utensils,
-  Wifi,
-  Wine,
-  Wrench,
-} from 'lucide-react'
+import * as lucide from 'lucide-react'
 
 export function CategoryIcon({
   category,
   ...props
-}: { category: Category | null } & LucideProps) {
-  const Icon = getCategoryIcon(`${category?.grouping}/${category?.name}`)
+}: { category: Category | null } & lucide.LucideProps) {
+
+  const Icon: lucide.LucideIcon =
+    (category && (lucide as any)[category.icon]) ?? lucide.Banknote
   return <Icon {...props} />
 }
 
-function getCategoryIcon(category: string): LucideIcon {
-  switch (category) {
-    case 'Uncategorized/General':
-      return Banknote
-    case 'Uncategorized/Payment':
-      return Banknote
-    case 'Entertainment/Entertainment':
-      return FerrisWheel
-    case 'Entertainment/Games':
-      return Dices
-    case 'Entertainment/Movies':
-      return Clapperboard
-    case 'Entertainment/Music':
-      return Music
-    case 'Entertainment/Sports':
-      return Dribbble
-    case 'Food and Drink/Food and Drink':
-      return Apple
-    case 'Food and Drink/Dining Out':
-      return Utensils
-    case 'Food and Drink/Groceries':
-      return ShoppingCart
-    case 'Food and Drink/Liquor':
-      return Wine
-    case 'Home/Home':
-      return Home
-    case 'Home/Electronics':
-      return Plug
-    case 'Home/Furniture':
-      return Armchair
-    case 'Home/Household Supplies':
-      return SprayCan
-    case 'Home/Maintenance':
-      return Wrench
-    case 'Home/Mortgage':
-      return Landmark
-    case 'Home/Pets':
-      return Cat
-    case 'Home/Rent':
-      return Home
-    case 'Home/Services':
-      return HandPlatter
-    case 'Life/Childcare':
-      return Baby
-    case 'Life/Clothing':
-      return Shirt
-    case 'Life/Education':
-      return LibraryBig
-    case 'Life/Gifts':
-      return Gift
-    case 'Life/Insurance':
-      return Landmark
-    case 'Life/Medical Expenses':
-      return Stethoscope
-    case 'Life/Taxes':
-      return Percent
-    case 'Transportation/Transportation':
-      return Bus
-    case 'Transportation/Bicycle':
-      return Bike
-    case 'Transportation/Bus/Train':
-      return Train
-    case 'Transportation/Car':
-      return Car
-    case 'Transportation/Gas/Fuel':
-      return Fuel
-    case 'Transportation/Hotel':
-      return Hotel
-    case 'Transportation/Parking':
-      return ParkingSquare
-    case 'Transportation/Plane':
-      return Plane
-    case 'Transportation/Taxi':
-      return CarTaxiFront
-    case 'Utilities/Utilities':
-      return Cog
-    case 'Utilities/Cleaning':
-      return Sparkles
-    case 'Utilities/Electricity':
-      return Lightbulb
-    case 'Utilities/Heat/Gas':
-      return ThermometerSun
-    case 'Utilities/Trash':
-      return Trash
-    case 'Utilities/TV/Phone/Internet':
-      return Wifi
-    case 'Utilities/Water':
-      return Droplets
-    default:
-      return Banknote
-  }
-}
+/*
+categoryId   	grouping	name	COUNT(categoryId)	
+0   Uncategorized 	General           	489   ->    0   General 	      General
+1   Uncategorized 	Payment           	60	  ->    1   General 	      Payment
+
+2   Entertainment 	Entertainment     	7     ->   201   Entertainment 	Events
+4   Entertainment 	Movies            	4	    ->   201   Entertainment 	Events
+5   Entertainment 	Music             	8	    ->   201   Entertainment 	Events
+6   Entertainment 	Sports            	31	  ->   202   Entertainment 	Sports
+
+7   Food and Drink	Food and Drink    	1	    ->   200   Entertainment 	Dining Out
+8   Food and Drink	Dining Out        	286	  ->   200   Entertainment 	Dining Out	
+9   Food and Drink	Groceries         	654	  ->   100   Life        	  Groceries
+10	Food and Drink	Liquor            	33	  ->   100   Life        	  Groceries	
+
+11	Home            Home              	3	    ->    303	Home          	Rent
+12	Home          	Electronics	        23    -> 	  104	Life            Shopping
+13	Home          	Furniture         	40	  ->    300	Home            Furniture 
+14	Home          	Household Supplies	129	  ->    101	Life            Household Supplies
+15	Home          	Maintenance	        23    ->    301	Home          	Maintenance
+16	Home          	Mortgage	          66    ->    302	Home          	Operating Cost
+17	Home          	Pets              	3	    ->    0   General       	General
+18	Home          	Rent              	13	  ->    302	Home          	Operating Cost
+
+20	Life          	Childcare	          94    ->    105	Life          	Childcare
+21	Life          	Clothing          	27    ->    103	Life            Clothing   
+23	Life          	Gifts	              67    ->    104	Life            Shopping
+24	Life          	Insurance	          1     ->    302	Home          	Operating Cost
+25	Life          	Medical Expenses	  89    ->    102	Life            Medical Expenses
+26	Life          	Taxes             	17	  ->    0   General 	      General
+
+27	Transportation	Transportation    	5     ->    401	Traveling	      Transportation	
+28	Transportation	Bicycle           	3	    ->    202 Entertainment 	Sports	
+29	Transportation	Bus/Train         	11    ->    401	Traveling	      Transportation	
+30	Transportation	Car               	37	  ->    400	Traveling	      Car
+31	Transportation	Gas/Fuel          	54	  ->    400	Traveling	      Car
+32	Transportation	Hotel             	48	  ->    402	Traveling	      Accommodation
+33	Transportation	Parking           	13    ->    400	Traveling	      Car	
+34	Transportation	Plane             	9     ->    401	Traveling	      Transportation	
+35	Transportation	Taxi              	6     ->    401	Traveling	      Transportation
+
+37	Utilities       Cleaning          	25    ->    301	Home          	Maintenance	
+38	Utilities       Electricity        	29    ->    302	Home          	Operating Cost
+41	Utilities       TV/Phone/Internet	  29    ->    302	Home          	Operating Cost
+42	Utilities       Water             	5     ->    302	Home          	Operating Cost
+*/

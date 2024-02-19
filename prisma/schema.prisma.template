@@ -30,9 +30,10 @@ model Participant {
 }
 
 model Category {
-  id       Int       @id @default(autoincrement())
+  id       Int       @id
   grouping String
   name     String
+  icon     String
   Expense  Expense[]
 }
 
