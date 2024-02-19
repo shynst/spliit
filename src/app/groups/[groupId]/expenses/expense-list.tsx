@@ -4,13 +4,15 @@ import { getGroupExpensesAction } from '@/app/groups/[groupId]/expenses/expense-
 import { Button } from '@/components/ui/button'
 import { SearchBar } from '@/components/ui/search-bar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatExpenseGroupDate, isSameMonth, isSameWeek } from '@/lib/utils'
 import { Participant } from '@prisma/client'
-import dayjs, { type Dayjs } from 'dayjs'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 
-type ExpensesType = NonNullable<Awaited<ReturnType<typeof getGroupExpensesAction>>>
+type ExpensesType = NonNullable<
+  Awaited<ReturnType<typeof getGroupExpensesAction>>
+>
 
 type Props = {
   expensesFirstPage: ExpensesType
@@ -20,35 +22,21 @@ type Props = {
   groupId: string
 }
 
-const EXPENSE_GROUPS = {
-  THIS_WEEK: 'This week',
-  EARLIER_THIS_MONTH: 'Earlier this month',
-  LAST_MONTH: 'Last month',
-  EARLIER_THIS_YEAR: 'Earlier this year',
-  LAST_YEAR: 'Last year',
-  OLDER: 'Older',
-}
-
-function getExpenseGroup(date: Dayjs, today: Dayjs) {
-  if (today.isSame(date, 'week')) {
-    return EXPENSE_GROUPS.THIS_WEEK
-  } else if (today.isSame(date, 'month')) {
-    return EXPENSE_GROUPS.EARLIER_THIS_MONTH
-  } else if (today.subtract(1, 'month').isSame(date, 'month')) {
-    return EXPENSE_GROUPS.LAST_MONTH
-  } else if (today.isSame(date, 'year')) {
-    return EXPENSE_GROUPS.EARLIER_THIS_YEAR
-  } else if (today.subtract(1, 'year').isSame(date, 'year')) {
-    return EXPENSE_GROUPS.LAST_YEAR
-  } else {
-    return EXPENSE_GROUPS.OLDER
-  }
-}
-
 function getGroupedExpensesByDate(expenses: ExpensesType) {
-  const today = dayjs()
+  const today = new Date()
+
+  function getExpenseGroup(date: Date) {
+    if (isSameWeek(date, today)) {
+      return 'This week'
+    } else if (isSameMonth(date, today)) {
+      return 'This month'
+    } else {
+      return formatExpenseGroupDate(date)
+    }
+  }
+
   return expenses.reduce((result: { [key: string]: ExpensesType }, expense) => {
-    const expenseGroup = getExpenseGroup(dayjs(expense.expenseDate), today)
+    const expenseGroup = getExpenseGroup(expense.expenseDate)
     result[expenseGroup] = result[expenseGroup] ?? []
     result[expenseGroup].push(expense)
     return result
@@ -69,25 +57,30 @@ export function ExpenseList({
   const [hasMoreData, setHasMoreData] = useState(expenseCount > firstLen)
   const [isFetching, setIsFetching] = useState(false)
   const [expenses, setExpenses] = useState(expensesFirstPage)
+  const [activeUserId, setActiveUserId] = useState(null as string | null)
+
   const { ref, inView } = useInView()
 
   useEffect(() => {
-    const activeUser = localStorage.getItem('newGroup-activeUser')
+    let userId = null as string | null
+    const newGroupUser = localStorage.getItem('newGroup-activeUser')
     const newUser = localStorage.getItem(`${groupId}-newUser`)
-    if (activeUser || newUser) {
+    if (newGroupUser || newUser) {
       localStorage.removeItem('newGroup-activeUser')
       localStorage.removeItem(`${groupId}-newUser`)
-      if (activeUser === 'None') {
+      if (newGroupUser === 'None') {
         localStorage.setItem(`${groupId}-activeUser`, 'None')
       } else {
-        const userId = participants.find(
-          (p) => p.name === (activeUser || newUser),
-        )?.id
+        userId =
+          participants.find((p) => p.name === (newGroupUser || newUser))?.id ||
+          null
         if (userId) {
           localStorage.setItem(`${groupId}-activeUser`, userId)
         }
       }
-    }
+    } else userId = localStorage.getItem(`${groupId}-activeUser`)
+
+    setActiveUserId(userId)
   }, [groupId, participants])
 
   useEffect(() => {
@@ -130,31 +123,28 @@ export function ExpenseList({
   return expenses.length > 0 ? (
     <>
       <SearchBar onChange={(e) => setSearchText(e.target.value)} />
-      {Object.values(EXPENSE_GROUPS).map((expenseGroup: string) => {
-        let groupExpenses = groupedExpensesByDate[expenseGroup]
-        if (!groupExpenses) return null
-
-        groupExpenses = groupExpenses.filter(({ title }) =>
+      {Object.entries(groupedExpensesByDate).map(([expGroup, exp]) => {
+        exp = exp.filter(({ title }) =>
           title.toLowerCase().includes(searchText.toLowerCase()),
         )
-
-        if (groupExpenses.length === 0) return null
+        if (exp.length === 0) return null
 
         return (
-          <div key={expenseGroup}>
+          <div key={expGroup}>
             <div
               className={
                 'text-muted-foreground text-xs pl-4 sm:pl-6 py-1 font-semibold sticky top-16 bg-white dark:bg-[#1b1917]'
               }
             >
-              {expenseGroup}
+              {expGroup}
             </div>
-            {groupExpenses.map((expense) => (
+            {exp.map((expense) => (
               <ExpenseCard
                 key={expense.id}
                 expense={expense}
                 currency={currency}
                 groupId={groupId}
+                activeUserId={activeUserId}
                 numMembers={participants.length}
               />
             ))}
