@@ -1,5 +1,6 @@
 'use client'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Settings } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 
 type Props = {
@@ -23,7 +24,10 @@ export function GroupTabs({ groupId }: Props) {
       <TabsList>
         <TabsTrigger value="expenses">Expenses</TabsTrigger>
         <TabsTrigger value="balances">Balances</TabsTrigger>
-        <TabsTrigger value="edit">Settings</TabsTrigger>
+        <TabsTrigger value="edit">
+          <Settings className="sm:hidden" strokeWidth={1.5} />
+          <span className="hidden sm:inline">Settings</span>
+        </TabsTrigger>
       </TabsList>
     </Tabs>
   )

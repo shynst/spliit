@@ -39,16 +39,18 @@ export function ExpenseCard({
     <div
       key={expense.id}
       className={cn(
-        'flex justify-between sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm cursor-pointer hover:bg-accent gap-1 items-stretch',
+        'flex sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm cursor-pointer hover:bg-accent gap-1',
         expense.isReimbursement && 'italic',
       )}
       onClick={() => {
         router.push(`/groups/${groupId}/expenses/${expense.id}/edit`)
       }}
     >
-      <CategoryExpenseIcon expense={expense} />
+      <div className="flex flex-col justify-center">
+        <CategoryExpenseIcon expense={expense} />
+      </div>
       <div className="flex-1 ml-2">
-        <div className="text-base mt-1">{expense.title}</div>
+        <div className="sm:text-base mt-2 sm:mt-1">{expense.title}</div>
         <div className="text-xs text-muted-foreground">
           {getName(expense.paidBy, 'You')} paid{' '}
           {expense.isReimbursement || 'for '}

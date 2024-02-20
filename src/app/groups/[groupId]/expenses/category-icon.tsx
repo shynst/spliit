@@ -30,8 +30,10 @@ export function CategoryIcon({
   return (
     <Icon
       {...props}
+      strokeWidth={1}
+      color="black"
       className={cn(
-        'w-5 h-5 stroke-1',
+        'w-5 h-5',
         coloredIcon && getCategoryColor(category),
         props.className,
       )}
@@ -55,7 +57,7 @@ export function CategoryExpenseIcon({
       }
     >
       <CategoryIcon category={cat} className="mb-1" />
-      <div className="text-xs mx-0.5 text-muted-foreground">
+      <div className="text-xs mx-0.5 text-muted-foreground dark:text-black">
         {formatExpenseDate(expense.expenseDate)}
       </div>
     </div>
