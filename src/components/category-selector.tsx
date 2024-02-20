@@ -171,7 +171,7 @@ CategoryButton.displayName = 'CategoryButton'
 function CategoryLabel({ category }: { category: Category }) {
   return (
     <div className="flex items-center gap-3">
-      <CategoryIcon category={category} className="w-4 h-4" />
+      <CategoryIcon category={category} coloredIcon={true} />
       {category.name}
     </div>
   )

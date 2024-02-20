@@ -15,14 +15,16 @@ export default function HomePage() {
             Share <strong>Expenses</strong> <br /> with <strong>Friends</strong>{' '}
             & <strong>Family</strong>
           </h1>
-          <Image
-            src={img}
-            className="m-1 h-auto w-auto"
-            width={256}
-            height={256}
-            style={{ borderRadius: '50%' }}
-            alt="Spliit"
-          />
+          <Link href="/groups">
+            <Image
+              src={img}
+              className="m-1 h-auto w-auto"
+              width={256}
+              height={256}
+              style={{ borderRadius: '50%' }}
+              alt="Spliit"
+            />
+          </Link>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
             Welcome to <strong>Spliit</strong>, a minimalist web application to
             share expenses with friends and family. No ads, no account, no

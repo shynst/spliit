@@ -1,9 +1,9 @@
 'use client'
-import { CategoryIcon } from '@/app/groups/[groupId]/expenses/category-icon'
+import { CategoryExpenseIcon } from '@/app/groups/[groupId]/expenses/category-icon'
 import { Button } from '@/components/ui/button'
 import { getGroupExpenses } from '@/lib/api'
 import { getBalances } from '@/lib/balances'
-import { cn, formatCurrency, formatExpenseDate } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -39,28 +39,19 @@ export function ExpenseCard({
     <div
       key={expense.id}
       className={cn(
-        'flex justify-between sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-4 text-sm cursor-pointer hover:bg-accent gap-1 items-stretch',
+        'flex justify-between sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm cursor-pointer hover:bg-accent gap-1 items-stretch',
         expense.isReimbursement && 'italic',
       )}
       onClick={() => {
         router.push(`/groups/${groupId}/expenses/${expense.id}/edit`)
       }}
     >
-      <div className="flex flex-col justify-between items-center">
-        <CategoryIcon
-          category={expense.category}
-          className="w-4 h-4 mr-2 mt-0.5 text-muted-foreground"
-        />
-        <div className="text-xs text-muted-foreground">
-          {formatExpenseDate(expense.expenseDate)}
-        </div>
-      </div>
+      <CategoryExpenseIcon expense={expense} />
       <div className="flex-1 ml-2">
-        <div className={cn('mb-1', expense.isReimbursement && 'italic')}>
-          {expense.title}
-        </div>
+        <div className="text-base mt-1">{expense.title}</div>
         <div className="text-xs text-muted-foreground">
-          {getName(expense.paidBy, 'You')} paid {expense.isReimbursement || 'for '}
+          {getName(expense.paidBy, 'You')} paid{' '}
+          {expense.isReimbursement || 'for '}
           {expense.paidFor.length < numMembers
             ? expense.paidFor.map((paidFor, index) => (
                 <Fragment key={index}>
@@ -72,26 +63,26 @@ export function ExpenseCard({
         </div>
       </div>
       <div
-        className={cn(
-          'flex flex-col items-end content-center',
-          balance == 0 ? 'justify-center' : 'justify-between',
-        )}
+        className={
+          'flex flex-col items-end content-center whitespace-nowrap justify-center'
+        }
       >
-        <div
-          className={cn(
-            'tabular-nums whitespace-nowrap',
-            expense.isReimbursement ? 'italic' : 'font-bold',
-          )}
-        >
+        <div className={cn(expense.isReimbursement || 'font-bold')}>
           {formatCurrency(currency, expense.amount)}
         </div>
         {balance > 0 ? (
-          <div className="text-xs text-green-600">
-            you get <strong>{formatCurrency(currency, balance)}</strong>
+          <div className="text-xs mt-1">
+            <span className="text-muted-foreground">you get </span>
+            <strong className="text-green-600">
+              {formatCurrency(currency, balance)}
+            </strong>
           </div>
         ) : balance < 0 ? (
-          <div className="text-xs text-red-600">
-            you owe <strong>{formatCurrency(currency, -balance)}</strong>
+          <div className="text-xs mt-1">
+            <span className="text-muted-foreground">you owe </span>
+            <strong className="text-red-600">
+              {formatCurrency(currency, -balance)}
+            </strong>
           </div>
         ) : null}
       </div>

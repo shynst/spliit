@@ -11,7 +11,7 @@
     "check-formatting": "prettier -c src",
     "postinstall": "./scripts/generate-prisma-schema.sh && prisma migrate deploy && prisma generate",
     "build-image": "./scripts/build-image.sh",
-    "transfer-image": "docker save spliit2_amd64 | bzip2 | pv | ssh docker@docker1 docker load",
+    "transfer-image": "docker save spliit2_amd64 | bzip2 | pv | ssh docker1 docker load",
     "start-container": "docker compose --env-file container.env up"
   },
   "dependencies": {
