@@ -122,7 +122,7 @@ export function ExpenseList({
 
   return expenses.length > 0 ? (
     <>
-      <SearchBar onChange={(e) => setSearchText(e.target.value)} />
+      <SearchBar onValueChange={(value) => setSearchText(value)} />
       {Object.entries(groupedExpensesByDate).map(([expGroup, exp]) => {
         exp = exp.filter(({ title }) =>
           title.toLowerCase().includes(searchText.toLowerCase()),
