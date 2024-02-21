@@ -1,26 +1,49 @@
 {
-    "cSpell.words": [
-        "autoincrement",
-        "clsx",
-        "cmdk",
-        "datasource",
-        "dbgenerated",
-        "embla",
-        "fkey",
-        "Fors",
-        "hookform",
-        "lucide",
-        "mysql",
-        "nocheck",
-        "openai",
-        "postgresql",
-        "prisma",
-        "progressbar",
-        "spliit",
-        "splitwise",
-        "tailwindcss",
-        "Uncategorized",
-        "unicode",
-        "vaul"
-    ]
+  "[javascript]": {
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.formatOnSave": true
+  },
+  "cSpell.words": [
+    "autoincrement",
+    "clsx",
+    "cmdk",
+    "datasource",
+    "dbgenerated",
+    "embla",
+    "fkey",
+    "Fors",
+    "hookform",
+    "lucide",
+    "mysql",
+    "nocheck",
+    "openai",
+    "postgresql",
+    "prisma",
+    "progressbar",
+    "spliit",
+    "splitwise",
+    "tailwindcss",
+    "Uncategorized",
+    "unicode",
+    "vaul"
+  ],
+  "cSpell.useGitignore": false,
+  "cSpell.ignorePaths": [
+    "package-lock.json",
+    "node_modules",
+    ".git/objects",
+    ".vscode",
+    ".vscode-insiders"
+  ]
 }
