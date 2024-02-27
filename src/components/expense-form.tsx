@@ -56,6 +56,17 @@ export type Props = {
   runtimeFeatureFlags: RuntimeFeatureFlags
 }
 
+const enforceCurrencyPattern = (value: string) =>
+  value
+    // replace first comma with #
+    .replace(/[.,]/, '#')
+    // remove all other commas
+    .replace(/[.,]/g, '')
+    // change back # to dot
+    .replace(/#/, '.')
+    // remove all non-numeric and non-dot characters
+    .replace(/[^\d.]/g, '')
+
 export function ExpenseForm({
   group,
   expense,
@@ -220,13 +231,18 @@ export function ExpenseForm({
                     <span>{group.currency}</span>
                     <FormControl>
                       <Input
+                        {...field}
                         className="text-base max-w-[120px]"
-                        type="number"
+                        type="text"
                         inputMode="decimal"
                         step={0.01}
                         placeholder="0.00"
                         onClick={(e) => e.currentTarget.select()}
-                        {...field}
+                        onChange={(event) =>
+                          field.onChange(
+                            enforceCurrencyPattern(event.target.value),
+                          )
+                        }
                       />
                     </FormControl>
                   </div>
@@ -431,7 +447,7 @@ export function ExpenseForm({
                                               ),
                                             )}
                                             className="text-base w-[80px] -my-2"
-                                            type="number"
+                                            type="text"
                                             disabled={
                                               !field.value?.some(
                                                 ({ participant }) =>
@@ -451,7 +467,9 @@ export function ExpenseForm({
                                                     ? {
                                                         participant: id,
                                                         shares:
-                                                          event.target.value,
+                                                          enforceCurrencyPattern(
+                                                            event.target.value,
+                                                          ),
                                                       }
                                                     : p,
                                                 ),
