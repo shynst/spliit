@@ -24,6 +24,7 @@ export function GroupTabs({ groupId }: Props) {
       <TabsList>
         <TabsTrigger value="expenses">Expenses</TabsTrigger>
         <TabsTrigger value="balances">Balances</TabsTrigger>
+        <TabsTrigger value="stats">Stats</TabsTrigger>
         <TabsTrigger value="edit">
           <Settings className="sm:hidden" strokeWidth={1.5} />
           <span className="hidden sm:inline">Settings</span>
