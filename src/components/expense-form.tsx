@@ -155,9 +155,19 @@ export function ExpenseForm({
   })
   const [isCategoryLoading, setCategoryLoading] = useState(false)
 
-  const paidForAll =
-    form.getValues().paidFor.length === group.participants.length
-  const equalSplit = form.getValues().splitMode === 'EVENLY'
+  const paidFor = form.getValues().paidFor
+  const numPaid = paidFor.length
+  const paidForTitle =
+    'Paid for ' +
+    (numPaid === 0
+      ? 'none'
+      : numPaid === 1
+      ? group.participants.find((p) => p.id === paidFor[0].participant)?.name ??
+        'one'
+      : numPaid === group.participants.length
+      ? 'all'
+      : String(numPaid) + ' participants') +
+    (form.getValues().splitMode !== 'EVENLY' ? ' unevenly' : '')
 
   return (
     <Form {...form}>
@@ -327,10 +337,7 @@ export function ExpenseForm({
 
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>
-              Paid for {paidForAll ? 'all' : 'some'}
-              {equalSplit ? ' evenly' : ' unevenly'}
-            </CardTitle>
+            <CardTitle>{paidForTitle}</CardTitle>
           </CardHeader>
           <CardContent>
             <Collapsible>
