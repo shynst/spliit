@@ -237,7 +237,7 @@ export function ExpenseForm({
                       className="date-base"
                       type="date"
                       defaultValue={formatDate(field.value)}
-                      onChange={(event) => 
+                      onChange={(event) =>
                         field.onChange(new Date(event.target.value))
                       }
                     />
@@ -263,7 +263,6 @@ export function ExpenseForm({
                         className="text-base min-w-[80px]"
                         type="text"
                         inputMode="decimal"
-                        step={0.01}
                         placeholder="0.00"
                         onChange={(event) =>
                           onChange(enforceCurrencyPattern(event.target.value))
@@ -471,8 +470,6 @@ export function ExpenseForm({
                                       return (
                                         <div>
                                           <div className="flex gap-1 items-center">
-                                            {form.getValues().splitMode ===
-                                              'BY_AMOUNT' && sharesLabel}
                                             <FormControl>
                                               <Input
                                                 key={String(
@@ -495,8 +492,8 @@ export function ExpenseForm({
                                                       participant === id,
                                                   )?.shares
                                                 }
-                                                onChange={(event) =>
-                                                  field.onChange(
+                                                onChange={(event) => {
+                                                  const v: any =
                                                     field.value.map((p) =>
                                                       p.participant === id
                                                         ? {
@@ -508,29 +505,22 @@ export function ExpenseForm({
                                                               ),
                                                           }
                                                         : p,
-                                                    ),
+                                                    )
+                                                  form.setValue(
+                                                    field.name,
+                                                    v,
+                                                    MarkDirty,
                                                   )
-                                                }
+                                                }}
                                                 inputMode={
                                                   form.getValues().splitMode ===
                                                   'BY_AMOUNT'
                                                     ? 'decimal'
                                                     : 'numeric'
                                                 }
-                                                step={
-                                                  form.getValues().splitMode ===
-                                                  'BY_AMOUNT'
-                                                    ? 0.01
-                                                    : 1
-                                                }
                                               />
                                             </FormControl>
-                                            {[
-                                              'BY_SHARES',
-                                              'BY_PERCENTAGE',
-                                            ].includes(
-                                              form.getValues().splitMode,
-                                            ) && sharesLabel}
+                                            {sharesLabel}
                                           </div>
                                           <FormMessage className="float-right" />
                                         </div>
@@ -556,9 +546,31 @@ export function ExpenseForm({
                         <FormLabel>Split mode</FormLabel>
                         <FormControl>
                           <Select
-                            onValueChange={(value: any) =>
-                              form.setValue(field.name, value, MarkDirty)
-                            }
+                            onValueChange={(value: any) => {
+                              const formValues = form.getValues()
+                              const pf = formValues.paidFor
+                              let shares: number
+
+                              switch (value) {
+                                case 'BY_PERCENTAGE':
+                                  shares = 100 / (pf.length || 1)
+                                  break
+                                case 'BY_AMOUNT':
+                                  shares = formValues.amount / (pf.length || 1)
+                                  break
+                                default:
+                                  shares = 1
+                                  break
+                              }
+
+                              const newPf = pf.map((p) => ({
+                                participant: p.participant,
+                                shares: String(shares) as unknown as number,
+                              }))
+
+                              form.setValue(field.name, value)
+                              form.setValue('paidFor', newPf, MarkDirty)
+                            }}
                             defaultValue={field.value}
                           >
                             <SelectTrigger>
