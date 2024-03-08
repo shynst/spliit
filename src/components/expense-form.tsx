@@ -67,6 +67,12 @@ const enforceCurrencyPattern = (value: string) =>
     // remove all non-numeric and non-dot characters
     .replace(/[^\d.]/g, '')
 
+const MarkDirty = {
+  shouldDirty: true,
+  shouldTouch: true,
+  shouldValidate: true,
+} as const
+
 export function ExpenseForm({
   group,
   expense,
@@ -231,9 +237,9 @@ export function ExpenseForm({
                       className="date-base"
                       type="date"
                       defaultValue={formatDate(field.value)}
-                      onChange={(event) => {
-                        return field.onChange(new Date(event.target.value))
-                      }}
+                      onChange={(event) => 
+                        field.onChange(new Date(event.target.value))
+                      }
                     />
                   </FormControl>
                   <FormDescription fieldName={field.name}>
@@ -377,11 +383,7 @@ export function ExpenseForm({
                               paidFor.find((pfor) => pfor.participant === p.id)
                                 ?.shares ?? ('1' as unknown as number),
                           }))
-                      form.setValue('paidFor', newPaidFor, {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                        shouldValidate: true,
-                      })
+                      form.setValue('paidFor', newPaidFor, MarkDirty)
                     }}
                   >
                     {form.getValues().paidFor.length ===
@@ -417,20 +419,20 @@ export function ExpenseForm({
                                         ({ participant }) => participant === id,
                                       )}
                                       onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([
+                                        const v: any = checked
+                                          ? [
                                               ...field.value,
                                               {
                                                 participant: id,
                                                 shares: '1',
                                               },
-                                            ])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) =>
-                                                  value.participant !== id,
-                                              ),
+                                            ]
+                                          : field.value?.filter(
+                                              (value) =>
+                                                value.participant !== id,
                                             )
+
+                                        form.setValue(field.name, v, MarkDirty)
                                       }}
                                     />
                                   </FormControl>
@@ -554,13 +556,9 @@ export function ExpenseForm({
                         <FormLabel>Split mode</FormLabel>
                         <FormControl>
                           <Select
-                            onValueChange={(value) => {
-                              form.setValue('splitMode', value as any, {
-                                shouldDirty: true,
-                                shouldTouch: true,
-                                shouldValidate: true,
-                              })
-                            }}
+                            onValueChange={(value: any) =>
+                              form.setValue(field.name, value, MarkDirty)
+                            }
                             defaultValue={field.value}
                           >
                             <SelectTrigger>
