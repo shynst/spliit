@@ -155,6 +155,10 @@ export function ExpenseForm({
   })
   const [isCategoryLoading, setCategoryLoading] = useState(false)
 
+  const paidForAll =
+    form.getValues().paidFor.length === group.participants.length
+  const equalSplit = form.getValues().splitMode === 'EVENLY'
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit((values) => onSubmit(values))}>
@@ -323,201 +327,204 @@ export function ExpenseForm({
 
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle className="flex justify-between">
-              <span>Paid for</span>
-              <Button
-                variant="link"
-                type="button"
-                className="-my-2 -mx-4"
-                onClick={() => {
-                  const paidFor = form.getValues().paidFor
-                  const allSelected =
-                    paidFor.length === group.participants.length
-                  const newPaidFor = allSelected
-                    ? []
-                    : group.participants.map((p) => ({
-                        participant: p.id,
-                        shares:
-                          paidFor.find((pfor) => pfor.participant === p.id)
-                            ?.shares ?? ('1' as unknown as number),
-                      }))
-                  form.setValue('paidFor', newPaidFor, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  })
-                }}
-              >
-                {form.getValues().paidFor.length ===
-                group.participants.length ? (
-                  <>Select none</>
-                ) : (
-                  <>Select all</>
-                )}
-              </Button>
+            <CardTitle>
+              Paid for {paidForAll ? 'all' : 'some'}
+              {equalSplit ? ' evenly' : ' unevenly'}
             </CardTitle>
-            <CardDescription>
-              Select who the expense was paid for.
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            <FormField
-              control={form.control}
-              name="paidFor"
-              render={() => (
-                <FormItem className="sm:order-4 row-span-2 space-y-0">
-                  {group.participants.map(({ id, name }) => (
-                    <FormField
-                      key={id}
-                      control={form.control}
-                      name="paidFor"
-                      render={({ field }) => {
-                        return (
-                          <div
-                            data-id={`${id}/${form.getValues().splitMode}/${
-                              group.currency
-                            }`}
-                            className="flex items-center border-t last-of-type:border-b last-of-type:!mb-4 -mx-6 px-6 py-3"
-                          >
-                            <FormItem className="flex-1 flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.some(
-                                    ({ participant }) => participant === id,
-                                  )}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([
-                                          ...field.value,
-                                          {
-                                            participant: id,
-                                            shares: '1',
-                                          },
-                                        ])
-                                      : field.onChange(
-                                          field.value?.filter(
-                                            (value) => value.participant !== id,
-                                          ),
-                                        )
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="text-sm font-normal flex-1">
-                                {name}
-                              </FormLabel>
-                            </FormItem>
-                            {form.getValues().splitMode !== 'EVENLY' && (
-                              <FormField
-                                name={`paidFor[${field.value.findIndex(
-                                  ({ participant }) => participant === id,
-                                )}].shares`}
-                                render={() => {
-                                  const sharesLabel = (
-                                    <span
-                                      className={cn('text-sm', {
-                                        'text-muted': !field.value?.some(
-                                          ({ participant }) =>
-                                            participant === id,
-                                        ),
-                                      })}
-                                    >
-                                      {match(form.getValues().splitMode)
-                                        .with('BY_SHARES', () => <>share(s)</>)
-                                        .with('BY_PERCENTAGE', () => <>%</>)
-                                        .with('BY_AMOUNT', () => (
-                                          <>{group.currency}</>
-                                        ))
-                                        .otherwise(() => (
-                                          <></>
-                                        ))}
-                                    </span>
-                                  )
-                                  return (
-                                    <div>
-                                      <div className="flex gap-1 items-center">
-                                        {form.getValues().splitMode ===
-                                          'BY_AMOUNT' && sharesLabel}
-                                        <FormControl>
-                                          <Input
-                                            key={String(
-                                              !field.value?.some(
-                                                ({ participant }) =>
-                                                  participant === id,
-                                              ),
-                                            )}
-                                            className="text-base w-[80px] -my-2"
-                                            type="text"
-                                            disabled={
-                                              !field.value?.some(
-                                                ({ participant }) =>
-                                                  participant === id,
-                                              )
-                                            }
-                                            value={
-                                              field.value?.find(
-                                                ({ participant }) =>
-                                                  participant === id,
-                                              )?.shares
-                                            }
-                                            onChange={(event) =>
-                                              field.onChange(
-                                                field.value.map((p) =>
-                                                  p.participant === id
-                                                    ? {
-                                                        participant: id,
-                                                        shares:
-                                                          enforceCurrencyPattern(
-                                                            event.target.value,
-                                                          ),
-                                                      }
-                                                    : p,
-                                                ),
-                                              )
-                                            }
-                                            inputMode={
-                                              form.getValues().splitMode ===
-                                              'BY_AMOUNT'
-                                                ? 'decimal'
-                                                : 'numeric'
-                                            }
-                                            step={
-                                              form.getValues().splitMode ===
-                                              'BY_AMOUNT'
-                                                ? 0.01
-                                                : 1
-                                            }
-                                          />
-                                        </FormControl>
-                                        {[
-                                          'BY_SHARES',
-                                          'BY_PERCENTAGE',
-                                        ].includes(
-                                          form.getValues().splitMode,
-                                        ) && sharesLabel}
-                                      </div>
-                                      <FormMessage className="float-right" />
-                                    </div>
-                                  )
-                                }}
-                              />
-                            )}
-                          </div>
-                        )
-                      }}
-                    />
-                  ))}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Collapsible className="mt-5">
+            <Collapsible>
               <CollapsibleTrigger asChild>
-                <Button variant="link" className="-mx-4">
-                  Advanced splitting options…
+                <Button
+                  variant="link"
+                  className="-mx-4 before:content-['Show'] [&[data-state=open]]:before:content-['Hide']"
+                >
+                  {'\u00A0splitting options…'}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent>
+                <CardDescription className="my-4 flex justify-between">
+                  Select who the expense was paid for.
+                  <Button
+                    variant="link"
+                    type="button"
+                    className="-my-2 -mx-4"
+                    onClick={() => {
+                      const paidFor = form.getValues().paidFor
+                      const allSelected =
+                        paidFor.length === group.participants.length
+                      const newPaidFor = allSelected
+                        ? []
+                        : group.participants.map((p) => ({
+                            participant: p.id,
+                            shares:
+                              paidFor.find((pfor) => pfor.participant === p.id)
+                                ?.shares ?? ('1' as unknown as number),
+                          }))
+                      form.setValue('paidFor', newPaidFor, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: true,
+                      })
+                    }}
+                  >
+                    {form.getValues().paidFor.length ===
+                    group.participants.length ? (
+                      <>Select none</>
+                    ) : (
+                      <>Select all</>
+                    )}
+                  </Button>
+                </CardDescription>
+                <FormField
+                  control={form.control}
+                  name="paidFor"
+                  render={() => (
+                    <FormItem className="sm:order-4 row-span-2 space-y-0">
+                      {group.participants.map(({ id, name }) => (
+                        <FormField
+                          key={id}
+                          control={form.control}
+                          name="paidFor"
+                          render={({ field }) => {
+                            return (
+                              <div
+                                data-id={`${id}/${form.getValues().splitMode}/${
+                                  group.currency
+                                }`}
+                                className="flex items-center border-t last-of-type:border-b last-of-type:!mb-4 -mx-6 px-6 py-3"
+                              >
+                                <FormItem className="flex-1 flex flex-row items-start space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.some(
+                                        ({ participant }) => participant === id,
+                                      )}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([
+                                              ...field.value,
+                                              {
+                                                participant: id,
+                                                shares: '1',
+                                              },
+                                            ])
+                                          : field.onChange(
+                                              field.value?.filter(
+                                                (value) => value.participant !== id,
+                                              ),
+                                            )
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal flex-1">
+                                    {name}
+                                  </FormLabel>
+                                </FormItem>
+                                {form.getValues().splitMode !== 'EVENLY' && (
+                                  <FormField
+                                    name={`paidFor[${field.value.findIndex(
+                                      ({ participant }) => participant === id,
+                                    )}].shares`}
+                                    render={() => {
+                                      const sharesLabel = (
+                                        <span
+                                          className={cn('text-sm', {
+                                            'text-muted': !field.value?.some(
+                                              ({ participant }) =>
+                                                participant === id,
+                                            ),
+                                          })}
+                                        >
+                                          {match(form.getValues().splitMode)
+                                            .with('BY_SHARES', () => <>share(s)</>)
+                                            .with('BY_PERCENTAGE', () => <>%</>)
+                                            .with('BY_AMOUNT', () => (
+                                              <>{group.currency}</>
+                                            ))
+                                            .otherwise(() => (
+                                              <></>
+                                            ))}
+                                        </span>
+                                      )
+                                      return (
+                                        <div>
+                                          <div className="flex gap-1 items-center">
+                                            {form.getValues().splitMode ===
+                                              'BY_AMOUNT' && sharesLabel}
+                                            <FormControl>
+                                              <Input
+                                                key={String(
+                                                  !field.value?.some(
+                                                    ({ participant }) =>
+                                                      participant === id,
+                                                  ),
+                                                )}
+                                                className="text-base w-[80px] -my-2"
+                                                type="text"
+                                                disabled={
+                                                  !field.value?.some(
+                                                    ({ participant }) =>
+                                                      participant === id,
+                                                  )
+                                                }
+                                                value={
+                                                  field.value?.find(
+                                                    ({ participant }) =>
+                                                      participant === id,
+                                                  )?.shares
+                                                }
+                                                onChange={(event) =>
+                                                  field.onChange(
+                                                    field.value.map((p) =>
+                                                      p.participant === id
+                                                        ? {
+                                                            participant: id,
+                                                            shares:
+                                                              enforceCurrencyPattern(
+                                                                event.target.value,
+                                                              ),
+                                                          }
+                                                        : p,
+                                                    ),
+                                                  )
+                                                }
+                                                inputMode={
+                                                  form.getValues().splitMode ===
+                                                  'BY_AMOUNT'
+                                                    ? 'decimal'
+                                                    : 'numeric'
+                                                }
+                                                step={
+                                                  form.getValues().splitMode ===
+                                                  'BY_AMOUNT'
+                                                    ? 0.01
+                                                    : 1
+                                                }
+                                              />
+                                            </FormControl>
+                                            {[
+                                              'BY_SHARES',
+                                              'BY_PERCENTAGE',
+                                            ].includes(
+                                              form.getValues().splitMode,
+                                            ) && sharesLabel}
+                                          </div>
+                                          <FormMessage className="float-right" />
+                                        </div>
+                                      )
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            )
+                          }}
+                        />
+                      ))}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid sm:grid-cols-2 gap-6 pt-3">
                   <FormField
                     control={form.control}
