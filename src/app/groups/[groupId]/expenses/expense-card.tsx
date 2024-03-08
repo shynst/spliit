@@ -7,7 +7,7 @@ import { cn, formatCurrency } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Fragment, useMemo } from 'react'
+import { useMemo } from 'react'
 
 type Props = {
   expense: Awaited<ReturnType<typeof getGroupExpenses>>[number]
@@ -26,8 +26,20 @@ export function ExpenseCard({
 }: Props) {
   const router = useRouter()
 
-  const getName = ({ id, name }: { id: string; name: string }, you: string) =>
-    id === activeUserId ? you : name
+  const paymentInfo = useMemo(() => {
+    const getName = ({ id, name }: { id: string; name: string }) =>
+      id !== activeUserId ? name : null
+
+    const payer = getName(expense.paidBy) || 'You'
+    const you = payer === 'You' ? 'yourself' : 'you'
+    const numParticipants = expense.paidFor.length
+
+    return numParticipants > 0 && numParticipants < numMembers
+      ? payer +
+          (expense.isReimbursement ? ' paid ' : ' paid for ') +
+          expense.paidFor.map((p) => getName(p.participant) || you).join(', ')
+      : payer + ' paid'
+  }, [activeUserId, expense, numMembers])
 
   const balance = useMemo(() => {
     return activeUserId && !expense.isReimbursement
@@ -51,18 +63,7 @@ export function ExpenseCard({
       </div>
       <div className="flex-1 ml-2">
         <div className="sm:text-base mt-2 sm:mt-1">{expense.title}</div>
-        <div className="text-xs text-muted-foreground">
-          {getName(expense.paidBy, 'You')} paid{' '}
-          {expense.isReimbursement || 'for '}
-          {expense.paidFor.length < numMembers
-            ? expense.paidFor.map((paidFor, index) => (
-                <Fragment key={index}>
-                  {(index > 0 ? ', ' : '') +
-                    getName(paidFor.participant, 'you')}
-                </Fragment>
-              ))
-            : 'all'}
-        </div>
+        <div className="text-xs text-muted-foreground">{paymentInfo}</div>
       </div>
       <div
         className={
