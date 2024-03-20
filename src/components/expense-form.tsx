@@ -37,7 +37,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Save } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { match } from 'ts-pattern'
 import { DeletePopup } from './delete-popup'
@@ -189,9 +189,18 @@ export function ExpenseForm({
       <FDescription className={cn(className, 'hidden sm:block')} {...props} />
     )
 
+  const scrollRef = useRef<HTMLFormElement>(null)
+  useEffect(() => {
+    const r = scrollRef.current
+    if (r && window.innerWidth < 640) r.scrollIntoView({ behavior: 'smooth' })
+  }, [])
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((values) => onSubmit(values))}>
+      <form
+        ref={scrollRef}
+        onSubmit={form.handleSubmit((values) => onSubmit(values))}
+      >
         <Card>
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle>
