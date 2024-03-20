@@ -109,6 +109,7 @@ export function ExpenseForm({
           splitMode: expense.splitMode,
           isReimbursement: expense.isReimbursement,
           documents: expense.documents,
+          notes: expense.notes || undefined,
         }
       : searchParams.get('reimbursement')
       ? {
@@ -130,6 +131,7 @@ export function ExpenseForm({
           isReimbursement: true,
           splitMode: 'EVENLY',
           documents: [],
+          notes: undefined,
         }
       : {
           title: searchParams.get('title') ?? '',
@@ -158,6 +160,7 @@ export function ExpenseForm({
                 },
               ]
             : [],
+          notes: searchParams.get('notes') || undefined,
         },
   })
   const [isCategoryLoading, setCategoryLoading] = useState(false)
