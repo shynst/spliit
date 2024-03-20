@@ -11,11 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
 import {
   FormDescription as FDescription,
   FormLabel as FLabel,
@@ -165,6 +161,10 @@ export function ExpenseForm({
   })
   const [isCategoryLoading, setCategoryLoading] = useState(false)
 
+  const [showOptions, setShowOptions] = useState(false)
+  const paidForInvalid = form.getFieldState('paidFor').invalid
+  if (paidForInvalid && !showOptions) setShowOptions(true)
+
   const formValues = form.getValues()
   const paidFor = formValues.paidFor
   const numPaid = paidFor.length
@@ -286,16 +286,18 @@ export function ExpenseForm({
                             <Checkbox
                               checked={field.value}
                               onCheckedChange={(checked) => {
-                                form.setValue(field.name, !!checked)
+                                const v = form.getValues()
+                                let p = v.paidFor
 
                                 if (checked) {
-                                  const v = form.getValues()
-                                  const p = v.paidFor.filter(
+                                  p = p.filter(
                                     (pf) => pf.participant !== v.paidBy,
                                   )
-                                  form.setValue('paidFor', p, MarkDirty)
                                   form.setValue('category', 1)
                                 }
+
+                                form.setValue(field.name, !!checked)
+                                form.setValue('paidFor', p, MarkDirty)
                               }}
                             />
                           </FormControl>
@@ -369,20 +371,24 @@ export function ExpenseForm({
             <CardTitle>{paidForTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Collapsible className="group">
+            <Collapsible className="group" open={showOptions}>
               {!!formValues.notes && (
                 <div className="text-sm my-2 sm:mb-4 group-[[data-state=open]]:hidden">
                   {formValues.notes}
                 </div>
               )}
-              <CollapsibleTrigger asChild>
+              {!paidForInvalid && (
                 <Button
                   variant="link"
                   className="p-0 before:content-['Show'] group-[[data-state=open]]:before:content-['Hide']"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setShowOptions(!showOptions)
+                  }}
                 >
                   {'\u00A0options…'}
                 </Button>
-              </CollapsibleTrigger>
+              )}
               <CollapsibleContent>
                 <CardDescription className="hidden sm:flex my-4 justify-between">
                   Select who the expense was paid for.
