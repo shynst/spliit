@@ -46,6 +46,7 @@ import { useForm } from 'react-hook-form'
 import { match } from 'ts-pattern'
 import { DeletePopup } from './delete-popup'
 import { extractCategoryFromTitle } from './expense-form-actions'
+import { Textarea } from './ui/textarea'
 
 export type Props = {
   group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
@@ -371,7 +372,7 @@ export function ExpenseForm({
                   variant="link"
                   className="p-0 before:content-['Show'] [&[data-state=open]]:before:content-['Hide']"
                 >
-                  {'\u00A0splitting options…'}
+                  {'\u00A0options…'}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent>
@@ -603,6 +604,21 @@ export function ExpenseForm({
                         </FormControl>
                         <FormDescription>
                           Select how to split the expense.
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea className="text-base" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Add comments to the expense.
                         </FormDescription>
                       </FormItem>
                     )}

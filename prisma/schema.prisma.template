@@ -53,6 +53,7 @@ model Expense {
   splitMode       SplitMode         @default(EVENLY)
   createdAt       DateTime          @default(now())
   documents       ExpenseDocument[]
+  notes           String?
 }
 
 model ExpenseDocument {
