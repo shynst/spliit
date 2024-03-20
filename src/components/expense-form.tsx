@@ -263,7 +263,6 @@ export function ExpenseForm({
                   <div className="flex items-center gap-2">
                     <FormControl>
                       <Input
-                        {...field}
                         className="text-base min-w-[80px]"
                         type="text"
                         inputMode="decimal"
