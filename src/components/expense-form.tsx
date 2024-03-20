@@ -165,7 +165,8 @@ export function ExpenseForm({
   })
   const [isCategoryLoading, setCategoryLoading] = useState(false)
 
-  const paidFor = form.getValues().paidFor
+  const formValues = form.getValues()
+  const paidFor = formValues.paidFor
   const numPaid = paidFor.length
   const paidForTitle =
     'Paid for ' +
@@ -177,7 +178,7 @@ export function ExpenseForm({
       : numPaid === group.participants.length
       ? 'all'
       : String(numPaid) + ' participants') +
-    (form.getValues().splitMode !== 'EVENLY' ? ' unevenly' : '')
+    (formValues.splitMode !== 'EVENLY' ? ' unevenly' : '')
 
   const FormDescription = ({
     fieldName,
@@ -368,11 +369,16 @@ export function ExpenseForm({
             <CardTitle>{paidForTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Collapsible>
+            <Collapsible className="group">
+              {!!formValues.notes && (
+                <div className="text-sm my-2 sm:mb-4 group-[[data-state=open]]:hidden">
+                  {formValues.notes}
+                </div>
+              )}
               <CollapsibleTrigger asChild>
                 <Button
                   variant="link"
-                  className="p-0 before:content-['Show'] [&[data-state=open]]:before:content-['Hide']"
+                  className="p-0 before:content-['Show'] group-[[data-state=open]]:before:content-['Hide']"
                 >
                   {'\u00A0options…'}
                 </Button>
@@ -617,7 +623,7 @@ export function ExpenseForm({
                       <FormItem className="sm:col-span-2">
                         <FormLabel>Notes</FormLabel>
                         <FormControl>
-                          <Textarea className="text-base" {...field} />
+                          <Textarea {...field} />
                         </FormControl>
                         <FormDescription>
                           Add comments to the expense.
