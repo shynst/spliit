@@ -281,7 +281,18 @@ export function ExpenseForm({
                           <FormControl>
                             <Checkbox
                               checked={field.value}
-                              onCheckedChange={field.onChange}
+                              onCheckedChange={(checked) => {
+                                form.setValue(field.name, !!checked)
+
+                                if (checked) {
+                                  const v = form.getValues()
+                                  const p = v.paidFor.filter(
+                                    (pf) => pf.participant !== v.paidBy,
+                                  )
+                                  form.setValue('paidFor', p, MarkDirty)
+                                  form.setValue('category', 1)
+                                }
+                              }}
                             />
                           </FormControl>
                           <div>
@@ -379,7 +390,7 @@ export function ExpenseForm({
                         : group.participants.map((p) => ({
                             participant: p.id,
                             shares:
-                              paidFor.find((pfor) => pfor.participant === p.id)
+                              paidFor.find((pf) => pf.participant === p.id)
                                 ?.shares ?? ('1' as unknown as number),
                           }))
                       form.setValue('paidFor', newPaidFor, MarkDirty)

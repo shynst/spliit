@@ -157,6 +157,18 @@ export const expenseFormSchema = z
         break
       }
     }
+
+    const paidForSelf = !!expense.paidFor.find(
+      (x) => x.participant === expense.paidBy,
+    )
+    if (paidForSelf && expense.isReimbursement) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'For refund payments the payer must not be a member of the recipients!',
+        path: ['paidFor'],
+      })
+    }
   })
 
 export type ExpenseFormValues = z.infer<typeof expenseFormSchema>
