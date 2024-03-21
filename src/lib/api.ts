@@ -43,7 +43,6 @@ export async function createExpense(
 
   return prisma.expense.create({
     data: {
-      id: randomId(),
       groupId,
       expenseDate: expenseFormValues.expenseDate,
       categoryId: expenseFormValues.category,
@@ -75,7 +74,7 @@ export async function createExpense(
   })
 }
 
-export async function deleteExpense(expenseId: string) {
+export async function deleteExpense(expenseId: number) {
   await prisma.expense.delete({
     where: { id: expenseId },
     include: { paidFor: true, paidBy: true },
@@ -108,7 +107,7 @@ export async function getGroups(groupIds: string[]) {
 
 export async function updateExpense(
   groupId: string,
-  expenseId: string,
+  expenseId: number,
   expenseFormValues: ExpenseFormValues,
 ) {
   const group = await getGroup(groupId)
@@ -267,7 +266,7 @@ export async function getGroupExpenseCount(groupId: string) {
   return prisma.expense.count({ where: { groupId } })
 }
 
-export async function getExpense(groupId: string, expenseId: string) {
+export async function getExpense(groupId: string, expenseId: number) {
   return prisma.expense.findUnique({
     where: { id: expenseId },
     include: { paidBy: true, paidFor: true, category: true, documents: true },

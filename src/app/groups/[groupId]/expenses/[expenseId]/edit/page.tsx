@@ -24,19 +24,20 @@ export default async function EditExpensePage({
   const categories = await getCategories()
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
-  const expense = await getExpense(groupId, expenseId)
+  const eid = parseInt(expenseId, 10)
+  const expense = await getExpense(groupId, eid)
   if (!expense) notFound()
 
   async function updateExpenseAction(values: unknown) {
     'use server'
     const expenseFormValues = expenseFormSchema.parse(values)
-    await updateExpense(groupId, expenseId, expenseFormValues)
+    await updateExpense(groupId, eid, expenseFormValues)
     redirect(`/groups/${groupId}`)
   }
 
   async function deleteExpenseAction() {
     'use server'
-    await deleteExpense(expenseId)
+    await deleteExpense(eid)
     redirect(`/groups/${groupId}`)
   }
 

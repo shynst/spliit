@@ -27,7 +27,7 @@ async function main() {
       const expenses: Prisma.ExpenseCreateManyInput[] = []
       const expenseParticipants: Prisma.ExpensePaidForCreateManyInput[] = []
       const participantIdsMapping: Record<number, string> = {}
-      const expenseIdsMapping: Record<number, string> = {}
+      const expenseIdsMapping: Record<number, number> = {}
 
       if (existingGroups.includes(groupRow.id)) {
         console.log(`Group ${groupRow.id} already exists, skipping.`)

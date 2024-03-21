@@ -38,7 +38,7 @@ model Category {
 }
 
 model Expense {
-  id              String            @id
+  id              Int               @id @default(autoincrement())
   group           Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
   expenseDate     DateTime          @default(dbgenerated("CURRENT_DATE")) @db.Date
   title           String
@@ -62,7 +62,7 @@ model ExpenseDocument {
   width     Int
   height    Int
   Expense   Expense? @relation(fields: [expenseId], references: [id])
-  expenseId String?
+  expenseId Int?
 }
 
 enum SplitMode {
@@ -75,7 +75,7 @@ enum SplitMode {
 model ExpensePaidFor {
   expense       Expense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  expenseId     String
+  expenseId     Int
   participantId String
   shares        Int         @default(1)
 
