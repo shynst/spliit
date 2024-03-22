@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getCategories, getExpense, getGroup, randomId } from '@/lib/api'
+import { getCategories, getExpense, getGroup } from '@/lib/api'
 import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
@@ -149,7 +149,6 @@ export function ExpenseForm({
           documents: searchParams.get('imageUrl')
             ? [
                 {
-                  id: randomId(),
                   url: searchParams.get('imageUrl') as string,
                   width: Number(searchParams.get('imageWidth')),
                   height: Number(searchParams.get('imageHeight')),

@@ -62,7 +62,7 @@ export async function createExpense(
       documents: {
         createMany: {
           data: expenseFormValues.documents.map((doc) => ({
-            id: randomId(),
+            id: doc.id,
             url: doc.url,
             width: doc.width,
             height: doc.height,

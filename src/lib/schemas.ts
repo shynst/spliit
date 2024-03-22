@@ -109,7 +109,7 @@ export const expenseFormSchema = z
     documents: z
       .array(
         z.object({
-          id: z.string(),
+          id: z.number().int(),
           url: z.string().url(),
           width: z.number().int().min(1),
           height: z.number().int().min(1),

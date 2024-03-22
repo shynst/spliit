@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dialog'
 import { ToastAction } from '@/components/ui/toast'
 import { useToast } from '@/components/ui/use-toast'
-import { randomId } from '@/lib/api'
 import { ExpenseFormValues } from '@/lib/schemas'
 import { formatFileSize } from '@/lib/utils'
 import { Loader2, Plus, Trash, X } from 'lucide-react'
@@ -32,7 +31,7 @@ const MAX_FILE_SIZE = 5 * 1024 ** 2
 
 export function ExpenseDocumentsInput({ documents, updateDocuments }: Props) {
   const [pending, setPending] = useState(false)
-  const { FileInput, openFileDialog, uploadToS3 } = usePresignedUpload() // use presigned uploads to addtionally support providers other than AWS
+  const { FileInput, openFileDialog, uploadToS3 } = usePresignedUpload() // use presigned uploads to additionally support providers other than AWS
   const { toast } = useToast()
 
   const handleFileChange = async (file: File) => {
@@ -53,7 +52,7 @@ export function ExpenseDocumentsInput({ documents, updateDocuments }: Props) {
         const { width, height } = await getImageData(file)
         if (!width || !height) throw new Error('Cannot get image dimensions')
         const { url } = await uploadToS3(file)
-        updateDocuments([...documents, { id: randomId(), url, width, height }])
+        updateDocuments([...documents, { id: 0, url, width, height }])
       } catch (err) {
         console.error(err)
         toast({
