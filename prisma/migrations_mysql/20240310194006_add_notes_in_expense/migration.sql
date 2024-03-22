@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `Expense` ADD `notes` TEXT;
+ALTER TABLE `Expense` ADD `notes` TEXT NULL;

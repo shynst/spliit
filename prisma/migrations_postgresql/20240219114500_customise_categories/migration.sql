@@ -37,3 +37,6 @@ UPDATE "Expense" SET "categoryId" = 402 WHERE "categoryId" = 32;
 UPDATE "Expense" SET "categoryId" = 0   WHERE "categoryId" > 1 AND "categoryId" < 100;
 
 DELETE FROM "Category" WHERE "id" > 1 AND "id" < 100; 
+
+ALTER TABLE "Category" ALTER COLUMN "id" DROP DEFAULT;
+DROP SEQUENCE "Category_id_seq";

@@ -20,10 +20,14 @@ else
     echo "Generating prisma schema for provider \"${PROVIDER}\""
 
     while IFS='' read -r a; do
-        echo "${a//env(\"PRISMA_PROVIDER\")/\"${PROVIDER}\"}"
+        a="${a//env(\"PRISMA_PROVIDER\")/\"${PROVIDER}\"}"
+        if [ "$PROVIDER" == "mysql" ]; then
+            a="${a//dbgenerated(\"CURRENT_DATE\")/dbgenerated(\"(curdate())\")}"
+        fi
+        echo "$a"
     done < "$PRISMA_SCHEMA_TEMPLATE" > "$PRISMA_SCHEMA"
 
-    cd prisma
+    cd prisma || exit
     rm -rf migrations
     ln -s "migrations_${PROVIDER}" migrations
 fi
