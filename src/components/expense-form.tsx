@@ -80,10 +80,10 @@ export function ExpenseForm({
 }: Props) {
   const isCreate = expense === undefined
   const searchParams = useSearchParams()
-  const getSelectedPayer = (field?: { value: string }) => {
+  const getSelectedPayer = (field?: { value: number }) => {
     if (isCreate && typeof window !== 'undefined') {
-      const activeUser = localStorage.getItem(`${group.id}-activeUser`)
-      if (activeUser && activeUser !== 'None') {
+      const activeUser = Number(localStorage.getItem(`${group.id}-activeUser`))
+      if (activeUser && activeUser !== 0) {
         return activeUser
       }
     }
@@ -115,11 +115,11 @@ export function ExpenseForm({
             (Number(searchParams.get('amount')) || 0) / 100,
           ) as unknown as number, // hack
           category: 1, // category with Id 1 is Payment
-          paidBy: searchParams.get('from') ?? undefined,
+          paidBy: Number(searchParams.get('from')) || undefined,
           paidFor: [
             searchParams.get('to')
               ? {
-                  participant: searchParams.get('to')!,
+                  participant: Number(searchParams.get('to')) || undefined,
                   shares: '1' as unknown as number,
                 }
               : undefined,

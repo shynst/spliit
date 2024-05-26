@@ -21,7 +21,7 @@ model Group {
 }
 
 model Participant {
-  id              String           @id
+  id              Int              @id @default(autoincrement())
   name            String
   group           Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId         String
@@ -46,7 +46,7 @@ model Expense {
   categoryId      Int               @default(0)
   amount          Int
   paidBy          Participant       @relation(fields: [paidById], references: [id], onDelete: Cascade)
-  paidById        String
+  paidById        Int
   paidFor         ExpensePaidFor[]
   groupId         String
   isReimbursement Boolean           @default(false)
@@ -76,7 +76,7 @@ model ExpensePaidFor {
   expense       Expense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
   expenseId     Int
-  participantId String
+  participantId Int
   shares        Int         @default(1)
 
   @@id([expenseId, participantId])

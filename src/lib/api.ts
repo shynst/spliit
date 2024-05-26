@@ -15,10 +15,7 @@ export async function createGroup(groupFormValues: GroupFormValues) {
       currency: groupFormValues.currency,
       participants: {
         createMany: {
-          data: groupFormValues.participants.map(({ name }) => ({
-            id: randomId(),
-            name,
-          })),
+          data: groupFormValues.participants.map(({ name }) => ({ name })),
         },
       },
     },
@@ -212,10 +209,7 @@ export async function updateGroup(
         createMany: {
           data: groupFormValues.participants
             .filter((participant) => participant.id === undefined)
-            .map((participant) => ({
-              id: randomId(),
-              name: participant.name,
-            })),
+            .map(({ name }) => ({ name })),
         },
       },
     },

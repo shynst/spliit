@@ -14,7 +14,7 @@ export const groupFormSchema = z
     participants: z
       .array(
         z.object({
-          id: z.string().optional(),
+          id: z.number().int().optional(),
           name: z
             .string()
             .min(2, 'Enter at least two characters.')
@@ -67,11 +67,13 @@ export const expenseFormSchema = z
         (amount) => amount <= 10_000_000_00,
         'The amount must be lower than 10,000,000.',
       ),
-    paidBy: z.string({ required_error: 'You must select a participant.' }),
+    paidBy: z
+      .number({ required_error: 'You must select a participant.' })
+      .int(),
     paidFor: z
       .array(
         z.object({
-          participant: z.string(),
+          participant: z.number().int(),
           shares: z.union([
             z.number(),
             z.string().transform((value, ctx) => {
