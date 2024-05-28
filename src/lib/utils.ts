@@ -24,31 +24,35 @@ export function formatExpenseDate(date: Date) {
 }
 
 export function formatExpenseGroupDate(date: Date) {
+  const BOUNDARY_DAY = 1 // Monday
+  const MS_PER_DAY = 1000 * 3600 * 24
+
+  const now = new Date()
+  const [year, month] = [date.getFullYear(), date.getMonth()]
+  const [yearNow, monthNow] = [now.getFullYear(), now.getMonth()]
+
+  const utc = Date.UTC(year, month, date.getDate())
+  const utcNow = Date.UTC(yearNow, monthNow, now.getDate())
+  if (utc > utcNow) return 'Upcoming'
+
+  const diffDays = Math.floor((utcNow - utc) / MS_PER_DAY)
+  if (diffDays <= 6) {
+    const day = date.getUTCDay()
+    const today = now.getUTCDay()
+    if (day == today) return 'Today'
+
+    if (day == BOUNDARY_DAY) return 'This week'
+
+    if (today != BOUNDARY_DAY) {
+      const dayDist = (day - BOUNDARY_DAY + 7) % 7
+      const todayDist = (today - BOUNDARY_DAY + 7) % 7
+      if (dayDist <= todayDist) return 'This week'
+    }
+  }
+
+  if (year == yearNow && month == monthNow) return 'This month'
+
   return monthFormatter.format(date)
-}
-
-export function isSameWeek(date: Date, now: Date) {
-  const _BOUNDARY_DAY = 1 // Monday
-  const _MS_PER_DAY = 1000 * 3600 * 24
-  const utc1 = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  const utc2 = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-  const diffDays = Math.floor((utc2 - utc1) / _MS_PER_DAY)
-  if (diffDays > 6) return false
-
-  const day = date.getUTCDay()
-  if (day == _BOUNDARY_DAY) return true
-
-  const today = now.getUTCDay()
-  if (today == _BOUNDARY_DAY) return false
-
-  const dayDist = (day - _BOUNDARY_DAY + 7) % 7
-  const todayDist = (today - _BOUNDARY_DAY + 7) % 7
-  return dayDist <= todayDist
-}
-
-export function isSameMonth(date: Date, now: Date) {
-  if (date.getFullYear() != now.getFullYear()) return false
-  return date.getMonth() == now.getMonth()
 }
 
 export function formatCategoryForAIPrompt(category: Category) {

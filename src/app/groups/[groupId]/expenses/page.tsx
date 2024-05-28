@@ -46,7 +46,7 @@ export default async function GroupExpensesPage({
           <CardHeader className="flex-1 p-4 sm:p-6">
             <CardTitle>Expenses</CardTitle>
             <CardDescription>
-              Here are the expenses that you created for your group.
+              Here are the expenses that were created for your group.
             </CardDescription>
           </CardHeader>
           <CardHeader className="p-4 sm:p-6 flex flex-row space-y-0 gap-2">

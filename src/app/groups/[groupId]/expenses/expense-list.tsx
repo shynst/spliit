@@ -4,7 +4,7 @@ import { getGroupExpensesAction } from '@/app/groups/[groupId]/expenses/expense-
 import { Button } from '@/components/ui/button'
 import { SearchBar } from '@/components/ui/search-bar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatExpenseGroupDate, isSameMonth, isSameWeek } from '@/lib/utils'
+import { formatExpenseGroupDate } from '@/lib/utils'
 import { Participant } from '@prisma/client'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
@@ -23,20 +23,8 @@ type Props = {
 }
 
 function getGroupedExpensesByDate(expenses: ExpensesType) {
-  const today = new Date()
-
-  function getExpenseGroup(date: Date) {
-    if (isSameWeek(date, today)) {
-      return 'This week'
-    } else if (isSameMonth(date, today)) {
-      return 'This month'
-    } else {
-      return formatExpenseGroupDate(date)
-    }
-  }
-
   return expenses.reduce((result: { [key: string]: ExpensesType }, expense) => {
-    const expenseGroup = getExpenseGroup(expense.expenseDate)
+    const expenseGroup = formatExpenseGroupDate(expense.expenseDate)
     result[expenseGroup] = result[expenseGroup] ?? []
     result[expenseGroup].push(expense)
     return result
