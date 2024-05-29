@@ -55,14 +55,12 @@ export type Props = {
 
 const enforceCurrencyPattern = (value: string) =>
   value
-    // replace first comma with #
-    .replace(/[.,]/, '#')
-    // remove all other commas
-    .replace(/[.,]/g, '')
-    // change back # to dot
-    .replace(/#/, '.')
-    // remove all non-numeric and non-dot characters
-    .replace(/[^\d.]/g, '')
+    .replace(/^\s*-/, '_') // replace leading minus with _
+    .replace(/[.,]/, '#') // replace first comma with #
+    .replace(/[-.,]/g, '') // remove other minus and commas characters
+    .replace(/_/, '-') // change back _ to minus
+    .replace(/#/, '.') // change back # to dot
+    .replace(/[^-\d.]/g, '') // remove all non-numeric characters
 
 const MarkDirty = {
   shouldDirty: true,
@@ -168,8 +166,15 @@ export function ExpenseForm({
   const formValues = form.getValues()
   const paidFor = formValues.paidFor
   const numPaid = paidFor.length
+
+  const [isIncome, setIsIncome] = useState(Number(form.getValues().amount) < 0)
+  const s_expense = isIncome ? 'income' : 'expense'
+  const s_Paid = isIncome ? 'Received' : 'Paid'
+  const s_paid = isIncome ? 'received' : 'paid'
+
   const paidForTitle =
-    'Paid for ' +
+    s_Paid +
+    ' for ' +
     (numPaid === 0
       ? 'none'
       : numPaid === 1
@@ -204,7 +209,7 @@ export function ExpenseForm({
         <Card>
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle>
-              {isCreate ? <>Create expense</> : <>Edit expense</>}
+              {(isCreate ? 'Create ' : 'Edit ') + s_expense}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid sm:grid-cols-2 gap-2 sm:gap-6">
@@ -233,7 +238,7 @@ export function ExpenseForm({
                     />
                   </FormControl>
                   <FormDescription fieldName={field.name}>
-                    Enter a description for the expense.
+                    Enter a description for the {s_expense}.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -257,7 +262,7 @@ export function ExpenseForm({
                     />
                   </FormControl>
                   <FormDescription fieldName={field.name}>
-                    Enter the date the expense was made.
+                    Enter the date the {s_expense} was ${s_paid}.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -277,9 +282,13 @@ export function ExpenseForm({
                         type="text"
                         inputMode="decimal"
                         placeholder="0.00"
-                        onChange={(event) =>
-                          onChange(enforceCurrencyPattern(event.target.value))
-                        }
+                        onChange={(event) => {
+                          const v = enforceCurrencyPattern(event.target.value)
+                          const income = Number(v) < 0
+                          setIsIncome(income)
+                          if (income) form.setValue('isReimbursement', false)
+                          onChange(v)
+                        }}
                         onFocus={(e) => {
                           {
                             // we're adding a small delay to get around safaris issue with onMouseUp deselecting things again
@@ -294,36 +303,38 @@ export function ExpenseForm({
                     </FormControl>
                     <span className="mr-2">{group.currency}</span>
 
-                    <FormField
-                      control={form.control}
-                      name="isReimbursement"
-                      render={({ field }) => (
-                        <FormItem className="flex gap-2 items-center space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={(checked) => {
-                                const v = form.getValues()
-                                let p = v.paidFor
+                    {!isIncome && (
+                      <FormField
+                        control={form.control}
+                        name="isReimbursement"
+                        render={({ field }) => (
+                          <FormItem className="flex gap-2 items-center space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={(checked) => {
+                                  const v = form.getValues()
+                                  let p = v.paidFor
 
-                                if (checked) {
-                                  p = p.filter(
-                                    (pf) => pf.participant !== v.paidBy,
-                                  )
-                                  form.setValue('category', 1)
-                                }
+                                  if (checked) {
+                                    p = p.filter(
+                                      (pf) => pf.participant !== v.paidBy,
+                                    )
+                                    form.setValue('category', 1)
+                                  }
 
-                                form.setValue(field.name, !!checked)
-                                form.setValue('paidFor', p, MarkDirty)
-                              }}
-                            />
-                          </FormControl>
-                          <div>
-                            <FLabel>Refund</FLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                                  form.setValue(field.name, !!checked)
+                                  form.setValue('paidFor', p, MarkDirty)
+                                }}
+                              />
+                            </FormControl>
+                            <div>
+                              <FLabel>Refund</FLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                   <FormMessage />
                 </FormItem>
@@ -345,7 +356,7 @@ export function ExpenseForm({
                     isLoading={isCategoryLoading}
                   />
                   <FormDescription fieldName={field.name}>
-                    Select the expense category.
+                    Select the {s_expense} category.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -357,7 +368,7 @@ export function ExpenseForm({
               name="paidBy"
               render={({ field }) => (
                 <FormItem className="order-1">
-                  <FormLabel>Paid by</FormLabel>
+                  <FormLabel>{s_Paid} by</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={getSelectedPayer(field)}
@@ -374,7 +385,7 @@ export function ExpenseForm({
                     </SelectContent>
                   </Select>
                   <FormDescription fieldName={field.name}>
-                    Select the person who paid the expense.
+                    Select the person who {s_paid} the {s_expense}.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -408,7 +419,7 @@ export function ExpenseForm({
               )}
               <CollapsibleContent>
                 <CardDescription className="hidden sm:flex my-4 justify-between">
-                  Select who the expense was paid for.
+                  Select who the {s_expense} was {s_paid} for.
                   <Button
                     variant="link"
                     type="button"
@@ -634,7 +645,7 @@ export function ExpenseForm({
                           </Select>
                         </FormControl>
                         <FormDescription>
-                          Select how to split the expense.
+                          Select how to split the {s_expense}.
                         </FormDescription>
                       </FormItem>
                     )}
@@ -649,7 +660,7 @@ export function ExpenseForm({
                           <Textarea {...field} />
                         </FormControl>
                         <FormDescription>
-                          Add comments to the expense.
+                          Add comments to the {s_expense}.
                         </FormDescription>
                       </FormItem>
                     )}
@@ -667,7 +678,7 @@ export function ExpenseForm({
                 <span>Attach documents</span>
               </CardTitle>
               <CardDescription>
-                See and attach receipts to the expense.
+                See and attach receipts to the {s_expense}.
               </CardDescription>
             </CardHeader>
             <CardContent>

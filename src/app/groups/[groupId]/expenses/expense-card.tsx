@@ -33,12 +33,13 @@ export function ExpenseCard({
     const payer = getName(expense.paidBy) || 'You'
     const you = payer === 'You' ? 'yourself' : 'you'
     const numParticipants = expense.paidFor.length
+    const s_paid = payer + ' ' + (expense.amount < 0 ? 'received' : 'paid')
 
     return numParticipants > 0 && numParticipants < numMembers
-      ? payer +
-          (expense.isReimbursement ? ' paid ' : ' paid for ') +
+      ? s_paid +
+          (expense.isReimbursement ? ' ' : ' for ') +
           expense.paidFor.map((p) => getName(p.participant) || you).join(', ')
-      : payer + ' paid'
+      : s_paid
   }, [activeUserId, expense, numMembers])
 
   const balance = useMemo(() => {
