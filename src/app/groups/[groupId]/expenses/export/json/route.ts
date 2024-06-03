@@ -20,7 +20,7 @@ export async function GET(
           amount: true,
           paidById: true,
           paidFor: { select: { participantId: true, shares: true } },
-          isReimbursement: true,
+          expenseType: true,
           splitMode: true,
         },
       },

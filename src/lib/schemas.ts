@@ -1,4 +1,4 @@
-import { SplitMode } from '@prisma/client'
+import { ExpenseType, SplitMode } from '@prisma/client'
 import * as z from 'zod'
 
 export const groupFormSchema = z
@@ -62,7 +62,7 @@ export const expenseFormSchema = z
         ],
         { required_error: 'You must enter an amount.' },
       )
-      .refine((amount) => amount != 1, 'The amount must not be zero.')
+      .refine((amount) => amount >= 1, 'The amount must be higher than 0.01.')
       .refine(
         (amount) => amount <= 10_000_000_00,
         'The amount must be lower than 10,000,000.',
@@ -105,7 +105,11 @@ export const expenseFormSchema = z
         Object.values(SplitMode) as any,
       )
       .default('EVENLY'),
-    isReimbursement: z.boolean(),
+    expenseType: z
+      .enum<ExpenseType, [ExpenseType, ...ExpenseType[]]>(
+        Object.values(ExpenseType) as any,
+      )
+      .default('EXPENSE'),
     documents: z
       .array(
         z.object({
@@ -162,7 +166,7 @@ export const expenseFormSchema = z
     const paidForSelf = !!expense.paidFor.find(
       (x) => x.participant === expense.paidBy,
     )
-    if (paidForSelf && expense.isReimbursement) {
+    if (paidForSelf && expense.expenseType === 'REIMBURSEMENT') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:

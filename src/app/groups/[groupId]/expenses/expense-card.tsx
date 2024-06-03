@@ -26,6 +26,10 @@ export function ExpenseCard({
 }: Props) {
   const router = useRouter()
 
+  const amount = useMemo(() => {
+    return (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount
+  }, [expense.amount, expense.expenseType])
+
   const paymentInfo = useMemo(() => {
     const getName = ({ id, name }: { id: string; name: string }) =>
       id !== activeUserId ? name : null
@@ -33,17 +37,17 @@ export function ExpenseCard({
     const payer = getName(expense.paidBy) || 'You'
     const you = payer === 'You' ? 'yourself' : 'you'
     const numParticipants = expense.paidFor.length
-    const s_paid = payer + ' ' + (expense.amount < 0 ? 'received' : 'paid')
+    const s_paid = payer + ' ' + (amount < 0 ? 'received' : 'paid')
 
     return numParticipants > 0 && numParticipants < numMembers
       ? s_paid +
-          (expense.isReimbursement ? ' ' : ' for ') +
+          (expense.expenseType === 'REIMBURSEMENT' ? ' ' : ' for ') +
           expense.paidFor.map((p) => getName(p.participant) || you).join(', ')
       : s_paid
-  }, [activeUserId, expense, numMembers])
+  }, [activeUserId, amount, expense, numMembers])
 
   const balance = useMemo(() => {
-    return activeUserId && !expense.isReimbursement
+    return activeUserId && expense.expenseType !== 'REIMBURSEMENT'
       ? getBalances([expense])?.[activeUserId]?.total || 0
       : 0
   }, [activeUserId, expense])
@@ -53,7 +57,7 @@ export function ExpenseCard({
       key={expense.id}
       className={cn(
         'flex sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm cursor-pointer hover:bg-accent gap-1',
-        expense.isReimbursement && 'italic',
+        expense.expenseType === 'REIMBURSEMENT' && 'italic',
       )}
       onClick={() => {
         router.push(`/groups/${groupId}/expenses/${expense.id}/edit`)
@@ -71,8 +75,10 @@ export function ExpenseCard({
           'flex flex-col items-end content-center whitespace-nowrap justify-center'
         }
       >
-        <div className={cn(expense.isReimbursement || 'font-bold')}>
-          {formatCurrency(currency, expense.amount)}
+        <div
+          className={cn(expense.expenseType === 'REIMBURSEMENT' || 'font-bold')}
+        >
+          {formatCurrency(currency, amount)}
         </div>
         {balance > 0 ? (
           <div className="text-xs mt-1">

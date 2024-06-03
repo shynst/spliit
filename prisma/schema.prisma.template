@@ -49,7 +49,7 @@ model Expense {
   paidById        String
   paidFor         ExpensePaidFor[]
   groupId         String
-  isReimbursement Boolean           @default(false)
+  expenseType     ExpenseType       @default(EXPENSE)
   splitMode       SplitMode         @default(EVENLY)
   createdAt       DateTime          @default(now())
   documents       ExpenseDocument[]
@@ -63,6 +63,12 @@ model ExpenseDocument {
   height    Int
   Expense   Expense? @relation(fields: [expenseId], references: [id])
   expenseId String?
+}
+
+enum ExpenseType {
+  EXPENSE
+  INCOME
+  REIMBURSEMENT
 }
 
 enum SplitMode {

@@ -59,7 +59,7 @@ export async function createExpense(
           })),
         },
       },
-      isReimbursement: expenseFormValues.isReimbursement,
+      expenseType: expenseFormValues.expenseType,
       documents: {
         createMany: {
           data: expenseFormValues.documents.map((doc) => ({
@@ -164,7 +164,7 @@ export async function updateExpense(
             ),
         ),
       },
-      isReimbursement: expenseFormValues.isReimbursement,
+      expenseType: expenseFormValues.expenseType,
       documents: {
         connectOrCreate: expenseFormValues.documents.map((doc) => ({
           create: doc,
@@ -245,7 +245,7 @@ export async function getGroupExpenses(
       createdAt: true,
       expenseDate: true,
       id: true,
-      isReimbursement: true,
+      expenseType: true,
       paidBy: { select: { id: true, name: true } },
       paidFor: {
         select: {

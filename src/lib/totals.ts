@@ -1,51 +1,50 @@
 import { getGroupExpenses } from '@/lib/api'
 
-export function getTotalGroupSpending(
-  expenses: NonNullable<Awaited<ReturnType<typeof getGroupExpenses>>>,
-): number {
-  return expenses.reduce(
-    (total, expense) =>
-      expense.isReimbursement ? total : total + expense.amount,
-    0,
-  )
+type Expenses = NonNullable<Awaited<ReturnType<typeof getGroupExpenses>>>
+
+function getBalance(expense: Expenses[number]) {
+  const t = expense.expenseType
+  return t === 'REIMBURSEMENT' ? 0 : (t === 'INCOME' ? -1 : 1) * expense.amount
+}
+
+export function getTotalGroupSpending(expenses: Expenses): number {
+  return expenses.reduce((total, expense) => total + getBalance(expense), 0)
 }
 
 export function getTotalActiveUserPaidFor(
   activeUserId: string | null,
-  expenses: NonNullable<Awaited<ReturnType<typeof getGroupExpenses>>>,
+  expenses: Expenses,
 ): number {
   return expenses.reduce(
     (total, expense) =>
-      expense.paidBy.id === activeUserId && !expense.isReimbursement
-        ? total + expense.amount
-        : total,
+      expense.paidBy.id === activeUserId ? total + getBalance(expense) : total,
     0,
   )
 }
 
 export function getTotalActiveUserShare(
   activeUserId: string | null,
-  expenses: NonNullable<Awaited<ReturnType<typeof getGroupExpenses>>>,
+  expenses: Expenses,
 ): number {
   let total = 0
 
   expenses.forEach((expense) => {
-    if (expense.isReimbursement) return
-
     const paidFors = expense.paidFor
     const userPaidFor = paidFors.find(
       (paidFor) => paidFor.participant.id === activeUserId,
     )
 
-    if (!userPaidFor) {
-      // If the active user is not involved in the expense, skip it
+    const balance = getBalance(expense)
+    if (balance === 0 || !userPaidFor) {
+      // if balance == 0 (reimbursement) or
+      // active user is not involved in the expense, skip expense
       return
     }
 
     switch (expense.splitMode) {
       case 'EVENLY':
         // Divide the total expense evenly among all participants
-        total += expense.amount / paidFors.length
+        total += balance / paidFors.length
         break
       case 'BY_AMOUNT':
         // Directly add the user's share if the split mode is BY_AMOUNT
@@ -53,7 +52,7 @@ export function getTotalActiveUserShare(
         break
       case 'BY_PERCENTAGE':
         // Calculate the user's share based on their percentage of the total expense
-        total += (expense.amount * userPaidFor.shares) / 10000 // Assuming shares are out of 10000 for percentage
+        total += (balance * userPaidFor.shares) / 10000 // Assuming shares are out of 10000 for percentage
         break
       case 'BY_SHARES':
         // Calculate the user's share based on their shares relative to the total shares
@@ -61,7 +60,9 @@ export function getTotalActiveUserShare(
           (sum, paidFor) => sum + paidFor.shares,
           0,
         )
-        total += (expense.amount * userPaidFor.shares) / totalShares
+        if (totalShares > 0) {
+          total += (balance * userPaidFor.shares) / totalShares
+        }
         break
     }
   })
