@@ -169,10 +169,10 @@ export function ExpenseForm({
   const paidFor = formValues.paidFor
   const numPaid = paidFor.length
 
-  const [isIncome, setIsIncome] = useState(
-    form.getValues().expenseType === 'INCOME',
-  )
-  const s_expense = isIncome ? 'income' : 'expense'
+  const [expenseType, setExpenseType] = useState(form.getValues().expenseType)
+  const s_transaction =
+    expenseType === 'REIMBURSEMENT' ? 'refund' : expenseType.toLowerCase()
+  const isIncome = expenseType === 'INCOME'
   const s_Paid = isIncome ? 'Received' : 'Paid'
   const s_paid = isIncome ? 'received' : 'paid'
 
@@ -213,7 +213,7 @@ export function ExpenseForm({
         <Card>
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle>
-              {(isCreate ? 'Create ' : 'Edit ') + s_expense}
+              {(isCreate ? 'Create ' : 'Edit ') + s_transaction}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-2 sm:gap-6">
@@ -242,7 +242,7 @@ export function ExpenseForm({
                     />
                   </FormControl>
                   <FormDescription fieldName={field.name}>
-                    Enter a description for the {s_expense}.
+                    Enter a description for the {s_transaction}.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -266,7 +266,7 @@ export function ExpenseForm({
                     />
                   </FormControl>
                   <FormDescription fieldName={field.name}>
-                    Enter the date the {s_expense} was {s_paid}.
+                    Enter the date the {s_transaction} was {s_paid}.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -324,7 +324,7 @@ export function ExpenseForm({
                   <FormLabel>Type</FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={(value: typeof expenseType) => {
                         const v = form.getValues()
                         let p = v.paidFor
 
@@ -335,7 +335,7 @@ export function ExpenseForm({
 
                         form.setValue(field.name, value as any)
                         form.setValue('paidFor', p, MarkDirty)
-                        setIsIncome(value === 'INCOME')
+                        setExpenseType(value)
                       }}
                       defaultValue={field.value}
                     >
@@ -345,12 +345,17 @@ export function ExpenseForm({
                       <SelectContent>
                         <SelectItem value="EXPENSE">Expense</SelectItem>
                         <SelectItem value="INCOME">Income</SelectItem>
-                        <SelectItem value="REIMBURSEMENT">
-                          Reimbursement
-                        </SelectItem>
+                        <SelectItem value="REIMBURSEMENT">Refund</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormDescription fieldName={field.name}>
+                    {expenseType === 'EXPENSE'
+                      ? 'Outgoing payment: increases group spending.'
+                      : expenseType === 'INCOME'
+                      ? 'Incoming payment: reduces group spending.'
+                      : 'Internal payment: does not affect group spending.'}
+                  </FormDescription>
                 </FormItem>
               )}
             />
@@ -370,7 +375,7 @@ export function ExpenseForm({
                     isLoading={isCategoryLoading}
                   />
                   <FormDescription fieldName={field.name}>
-                    Select the {s_expense} category.
+                    Select the {s_transaction} category.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -399,7 +404,7 @@ export function ExpenseForm({
                     </SelectContent>
                   </Select>
                   <FormDescription fieldName={field.name}>
-                    Select the person who {s_paid} the {s_expense}.
+                    Select the person who {s_paid} the {s_transaction}.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -433,7 +438,7 @@ export function ExpenseForm({
               )}
               <CollapsibleContent>
                 <CardDescription className="hidden sm:flex my-4 justify-between">
-                  Select who the {s_expense} was {s_paid} for.
+                  Select who the {s_transaction} was {s_paid} for.
                   <Button
                     variant="link"
                     type="button"
@@ -659,7 +664,7 @@ export function ExpenseForm({
                           </Select>
                         </FormControl>
                         <FormDescription>
-                          Select how to split the {s_expense}.
+                          Select how to split the {s_transaction}.
                         </FormDescription>
                       </FormItem>
                     )}
@@ -674,7 +679,7 @@ export function ExpenseForm({
                           <Textarea {...field} />
                         </FormControl>
                         <FormDescription>
-                          Add comments to the {s_expense}.
+                          Add comments to the {s_transaction}.
                         </FormDescription>
                       </FormItem>
                     )}
@@ -692,7 +697,7 @@ export function ExpenseForm({
                 <span>Attach documents</span>
               </CardTitle>
               <CardDescription>
-                See and attach receipts to the {s_expense}.
+                See and attach receipts to the {s_transaction}.
               </CardDescription>
             </CardHeader>
             <CardContent>
