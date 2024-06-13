@@ -293,7 +293,7 @@ export function ExpenseForm({
                         inputMode="decimal"
                         placeholder="0.00"
                         onChange={(event) =>
-                          enforceCurrencyPattern(event.target.value)
+                          onChange(enforceCurrencyPattern(event.target.value))
                         }
                         onFocus={(e) => {
                           {
