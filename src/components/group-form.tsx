@@ -1,4 +1,6 @@
 'use client'
+import { CopyButton } from '@/components/copy-button'
+import { ShareUrlButton } from '@/components/share-url-button'
 import { SubmitButton } from '@/components/submit-button'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,6 +34,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getGroup } from '@/lib/api'
+import { useBaseUrl } from '@/lib/hooks'
 import { GroupFormValues, groupFormSchema } from '@/lib/schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save, Trash2 } from 'lucide-react'
@@ -40,7 +43,7 @@ import { useEffect, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 
 export type Props = {
-  group?: NonNullable<Awaited<ReturnType<typeof getGroup>>>
+  group?: Awaited<ReturnType<typeof getGroup>>
   onSubmit: (groupFormValues: GroupFormValues) => Promise<void>
   protectedParticipantIds?: string[]
 }
@@ -50,6 +53,10 @@ export function GroupForm({
   onSubmit,
   protectedParticipantIds = [],
 }: Props) {
+  const baseUrl = useBaseUrl()
+  const url =
+    baseUrl && group && `${baseUrl}/groups/${group.id}/expenses?ref=share`
+
   const form = useForm<GroupFormValues>({
     resolver: zodResolver(groupFormSchema),
     defaultValues: group
@@ -102,7 +109,7 @@ export function GroupForm({
           await onSubmit(values)
         })}
       >
-        <Card className="mb-4">
+        <Card>
           <CardHeader>
             <CardTitle>Group information</CardTitle>
           </CardHeader>
@@ -152,7 +159,7 @@ export function GroupForm({
           </CardContent>
         </Card>
 
-        <Card className="mb-4">
+        <Card>
           <CardHeader>
             <CardTitle>Participants</CardTitle>
             <CardDescription>
@@ -230,7 +237,35 @@ export function GroupForm({
           </CardFooter>
         </Card>
 
-        <Card className="mb-4">
+        {url && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Share</CardTitle>
+              <CardDescription>
+                For other participants to see the group and add expenses, share
+                its URL with them.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2 mb-3">
+                <Input className="flex-1" defaultValue={url} readOnly />
+                <CopyButton text={url} />
+                <ShareUrlButton
+                  text={`Join my group ${group.name} on Spliit`}
+                  url={url}
+                />
+              </div>
+              <FormDescription>
+                <strong>Warning!</strong> Every person with the group URL will
+                be able to see and edit expenses.
+                <br />
+                Share with caution!
+              </FormDescription>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
           <CardHeader>
             <CardTitle>Local settings</CardTitle>
             <CardDescription>

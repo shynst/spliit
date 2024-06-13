@@ -17,7 +17,7 @@ import {
   getGroupExpenses,
 } from '@/lib/api'
 import { env } from '@/lib/env'
-import { Download, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -41,25 +41,15 @@ export default async function GroupExpensesPage({
 
   return (
     <>
-      <Card className="mb-4 rounded-none -mx-4 border-x-0 sm:border-x sm:rounded-lg sm:mx-0">
+      <Card>
         <div className="flex flex-1">
-          <CardHeader className="flex-1 p-4 sm:p-6">
+          <CardHeader className="flex-1 max-sm:pb-0">
             <CardTitle>Expenses</CardTitle>
-            <CardDescription>
+            <CardDescription className="max-sm:hidden">
               Here are the expenses that were created for your group.
             </CardDescription>
           </CardHeader>
-          <CardHeader className="p-4 sm:p-6 flex flex-row space-y-0 gap-2">
-            <Button variant="secondary" size="icon" asChild>
-              <Link
-                prefetch={false}
-                href={`/groups/${groupId}/expenses/export/json`}
-                target="_blank"
-                title="Export to JSON"
-              >
-                <Download className="w-4 h-4" />
-              </Link>
-            </Button>
+          <CardHeader className="flex flex-row space-y-0 gap-2 max-sm:pb-0">
             {env.NEXT_PUBLIC_ENABLE_RECEIPT_EXTRACT && (
               <CreateFromReceiptButton
                 groupId={groupId}
@@ -78,7 +68,7 @@ export default async function GroupExpensesPage({
           </CardHeader>
         </div>
 
-        <CardContent className="p-0 pt-2 pb-4 sm:pb-6 flex flex-col gap-4 relative">
+        <CardContent className="p-0 pt-2 pb-4 sm:p-0 sm:pb-6 flex flex-col gap-4 relative">
           <Suspense
             fallback={[0, 1, 2].map((i) => (
               <div

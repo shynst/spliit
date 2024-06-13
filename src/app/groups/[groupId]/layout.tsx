@@ -1,7 +1,6 @@
 import { cached } from '@/app/cached-functions'
 import { GroupTabs } from '@/app/groups/[groupId]/group-tabs'
 import { SaveGroupLocally } from '@/app/groups/[groupId]/save-recent-group'
-import { ShareButton } from '@/app/groups/[groupId]/share-button'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -40,12 +39,9 @@ export default async function GroupLayout({
           <Link href={`/groups/${groupId}`}>{group.name}</Link>
         </h1>
 
-        <div className="flex gap-2 justify-between">
-          <Suspense>
-            <GroupTabs groupId={groupId} />
-          </Suspense>
-          <ShareButton group={group} />
-        </div>
+        <Suspense>
+          <GroupTabs groupId={groupId} />
+        </Suspense>
       </div>
 
       {children}

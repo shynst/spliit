@@ -29,14 +29,14 @@ export default async function TotalsPage({
 
   return (
     <>
-      <Card className="mb-4">
+      <Card>
         <CardHeader>
           <CardTitle>Totals</CardTitle>
           <CardDescription>
             Spending summary of the entire group.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col space-y-4">
+        <CardContent>
           <Totals
             group={group}
             expenses={expenses}

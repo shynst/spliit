@@ -4,22 +4,22 @@ import { ExpenseDocumentsInput } from '@/components/expense-documents-input'
 import { SubmitButton } from '@/components/submit-button'
 import { Button } from '@/components/ui/button'
 import {
-  CardHeader as CHeader,
   Card,
   CardContent,
   CardDescription,
+  CardHeader,
   CardTitle,
 } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
 import {
   FormDescription as FDescription,
-  FormLabel as FLabel,
-  FormMessage as FMessage,
   Form,
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
@@ -198,11 +198,7 @@ export function ExpenseForm({
   }: { fieldName?: string } & React.ComponentProps<typeof FDescription>) =>
     !!(fieldName && form.getFieldState(fieldName as any).invalid) || (
       <FDescription
-        className={cn(
-          'max-sm:text-xs max-sm:!mt-1',
-          className,
-          !sm_describe && 'max-sm:hidden',
-        )}
+        className={cn(className, !sm_describe && 'max-sm:hidden')}
         {...props}
       />
     )
@@ -219,13 +215,13 @@ export function ExpenseForm({
         ref={scrollRef}
         onSubmit={form.handleSubmit((values) => onSubmit(values))}
       >
-        <Card>
+        <Card className="max-sm:mb-0">
           <CardHeader className="pb-3 sm:pb-6 flex flex-row justify-between">
             <CardTitle>
               {(isCreate ? 'Create ' : 'Edit ') + s_transaction}
             </CardTitle>
             <Button
-              className="sm:hidden px-3 py-0 !mt-0 h-auto"
+              className="sm:hidden px-3 py-0 !mt-0 w-6 h-6"
               onClick={(e) => {
                 e.preventDefault()
                 setSMDescribe(!sm_describe)
@@ -239,8 +235,8 @@ export function ExpenseForm({
               control={form.control}
               name="title"
               render={({ field }) => (
-                <FormItem className="col-span-2 sm:col-span-1">
-                  <FormLabel className="hidden sm:inline">Title</FormLabel>
+                <FormItem className="order-1 max-sm:col-span-2">
+                  <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Monday evening restaurant"
@@ -271,7 +267,7 @@ export function ExpenseForm({
               control={form.control}
               name="expenseDate"
               render={({ field }) => (
-                <FormItem className="col-span-2 sm:col-span-1">
+                <FormItem className="order-4">
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Input
@@ -295,40 +291,33 @@ export function ExpenseForm({
               control={form.control}
               name="amount"
               render={({ field: { onChange, ...field } }) => (
-                <FormItem className="order-2">
-                  <FormLabel>
-                    Amount
-                    <span className="inline sm:hidden">
-                      {' '}
-                      in {group.currency}
-                    </span>
-                  </FormLabel>
-                  <div className="flex items-center gap-2">
-                    <FormControl>
-                      <Input
-                        className="text-base min-w-[80px]"
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        onChange={(event) =>
-                          onChange(enforceCurrencyPattern(event.target.value))
+                <FormItem className="order-5">
+                  <FormLabel>Amount in {group.currency}</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="text-base min-w-[80px]"
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0.00"
+                      onChange={(e) =>
+                        onChange(enforceCurrencyPattern(e.target.value))
+                      }
+                      onFocus={(e) => {
+                        {
+                          // we're adding a small delay to get around safaris issue with onMouseUp deselecting things again
+                          let target = e.currentTarget
+                          setTimeout(function () {
+                            target.select()
+                          }, 1)
                         }
-                        onFocus={(e) => {
-                          {
-                            // we're adding a small delay to get around safaris issue with onMouseUp deselecting things again
-                            let target = e.currentTarget
-                            setTimeout(function () {
-                              target.select()
-                            }, 1)
-                          }
-                        }}
-                        {...field}
-                      />
-                    </FormControl>
-                    <span className="hidden sm:block sm:mr-2">
-                      {group.currency}
-                    </span>
-                  </div>
+                      }}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription fieldName={field.name}>
+                    Enter the amount
+                    <span className="max-sm:hidden">{' ' + s_paid}</span>.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -338,7 +327,7 @@ export function ExpenseForm({
               control={form.control}
               name="expenseType"
               render={({ field }) => (
-                <FormItem className="order-3">
+                <FormItem className="order-6">
                   <FormLabel>Type</FormLabel>
                   <FormControl>
                     <Select
@@ -363,10 +352,10 @@ export function ExpenseForm({
                   </FormControl>
                   <FormDescription fieldName={field.name}>
                     {expenseType === 'EXPENSE'
-                      ? 'Outgoing payment: increases group spending.'
+                      ? 'Outgoing payment increases group\u00A0spending.'
                       : expenseType === 'INCOME'
-                      ? 'Incoming payment: reduces group spending.'
-                      : 'Internal payment: does not affect group spending.'}
+                      ? 'Incoming payment reduces group\u00A0spending.'
+                      : 'Internal payment does not affect group\u00A0spending.'}
                   </FormDescription>
                 </FormItem>
               )}
@@ -376,7 +365,7 @@ export function ExpenseForm({
               control={form.control}
               name="category"
               render={({ field }) => (
-                <FormItem className="order-4 col-span-2 sm:col-span-1">
+                <FormItem className="order-2 max-sm:col-span-2">
                   <FormLabel>Category</FormLabel>
                   <CategorySelector
                     categories={categories}
@@ -398,7 +387,7 @@ export function ExpenseForm({
               control={form.control}
               name="paidBy"
               render={({ field }) => (
-                <FormItem className="order-1 col-span-2 sm:col-span-1">
+                <FormItem className="order-3">
                   <FormLabel>{s_Paid} by</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -416,7 +405,7 @@ export function ExpenseForm({
                     </SelectContent>
                   </Select>
                   <FormDescription fieldName={field.name}>
-                    Select the person who {s_paid} the {s_transaction}.
+                    Person who {s_paid} the {s_transaction}.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -425,7 +414,7 @@ export function ExpenseForm({
           </CardContent>
         </Card>
 
-        <Card className="sm:mt-4">
+        <Card>
           <CardHeader>
             <CardTitle>{paidForTitle}</CardTitle>
           </CardHeader>
@@ -530,9 +519,9 @@ export function ExpenseForm({
                                       onCheckedChange={checkParticipant}
                                     />
                                   </FormControl>
-                                  <FLabel className="text-sm font-normal flex-1">
+                                  <FormLabel className="text-sm font-normal flex-1">
                                     {name}
-                                  </FLabel>
+                                  </FormLabel>
                                 </FormItem>
                                 {splitMode !== 'EVENLY' && isChecked && (
                                   <FormField
@@ -691,7 +680,7 @@ export function ExpenseForm({
         </Card>
 
         {runtimeFeatureFlags.enableExpenseDocuments && (
-          <Card className="sm:mt-4">
+          <Card>
             <CardHeader>
               <CardTitle className="flex justify-between">
                 <span>Attach documents</span>
@@ -733,30 +722,6 @@ export function ExpenseForm({
     </Form>
   )
 }
-
-const CardHeader = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof CHeader>) => (
-  <CHeader className={cn('pt-4 pb-3 sm:pt-6 sm:pb-6', className)} {...props} />
-)
-
-const FormLabel = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof FLabel>) => (
-  <FLabel className={cn('block mt-1 -mb-1 sm:inline', className)} {...props} />
-)
-
-const FormMessage = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof FDescription>) => (
-  <FMessage
-    className={cn('text-xs pb-2 sm:pb-0 sm:text-sm', className)}
-    {...props}
-  />
-)
 
 function formatDate(date?: Date) {
   if (!date || isNaN(date as any)) date = new Date()

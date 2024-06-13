@@ -35,8 +35,8 @@ export default async function GroupPage({
   const publicBalances = getPublicBalances(reimbursements)
 
   return (
-    <>
-      <Card className="mb-4">
+    <div>
+      <Card>
         <CardHeader>
           <CardTitle>Balances</CardTitle>
           <CardDescription>
@@ -51,7 +51,7 @@ export default async function GroupPage({
           />
         </CardContent>
       </Card>
-      <Card className="mb-4">
+      <Card>
         <CardHeader>
           <CardTitle>Suggested reimbursements</CardTitle>
           <CardDescription>
@@ -59,7 +59,7 @@ export default async function GroupPage({
             participants.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 sm:p-0">
           <ReimbursementList
             reimbursements={reimbursements}
             participants={group.participants}
@@ -68,6 +68,6 @@ export default async function GroupPage({
           />
         </CardContent>
       </Card>
-    </>
+    </div>
   )
 }

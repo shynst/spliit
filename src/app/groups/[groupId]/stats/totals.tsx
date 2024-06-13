@@ -1,9 +1,11 @@
 'use client'
-import { TotalsGroupSpending } from '@/app/groups/[groupId]/stats/totals-group-spending'
-import { TotalsYourShare } from '@/app/groups/[groupId]/stats/totals-your-share'
-import { TotalsYourSpendings } from '@/app/groups/[groupId]/stats/totals-your-spending'
 import { getGroup, getGroupExpenses } from '@/lib/api'
 import { useActiveUser } from '@/lib/hooks'
+import {
+  getTotalActiveUserPaidFor,
+  getTotalActiveUserShare,
+} from '@/lib/totals'
+import { cn, formatCurrency } from '@/lib/utils'
 
 export function Totals({
   group,
@@ -15,20 +17,64 @@ export function Totals({
   totalGroupSpendings: number
 }) {
   const activeUser = useActiveUser(group.id)
-  console.log('activeUser', activeUser)
+  const currency = group.currency
 
   return (
     <>
-      <TotalsGroupSpending
-        totalGroupSpendings={totalGroupSpendings}
-        currency={group.currency}
+      <StatItem
+        label="Total group $balance"
+        amount={totalGroupSpendings}
+        currency={currency}
+        colored={false}
       />
+
       {activeUser && activeUser !== 'None' && (
         <>
-          <TotalsYourSpendings group={group} expenses={expenses} />
-          <TotalsYourShare group={group} expenses={expenses} />
+          <StatItem
+            label="Your total $balance"
+            amount={getTotalActiveUserPaidFor(activeUser, expenses)}
+            currency={currency}
+            colored={true}
+          />
+          <StatItem
+            label="Your total share"
+            amount={getTotalActiveUserShare(activeUser, expenses)}
+            currency={currency}
+            colored={true}
+          />
         </>
       )}
+    </>
+  )
+}
+
+function StatItem({
+  label,
+  amount,
+  currency,
+  colored,
+}: {
+  label: string
+  amount: number
+  currency: string
+  colored: boolean
+}) {
+  const balance = amount < 0 ? 'earnings' : 'spendings'
+  label = label.replaceAll('$balance', balance)
+
+  return (
+    <>
+      <label className="block mt-2 text-sm font-medium leading-none">
+        {label}
+      </label>
+      <div
+        className={cn(
+          'text-lg mb-4',
+          colored && (amount < 0 ? 'text-green-600' : 'text-red-600'),
+        )}
+      >
+        {formatCurrency(currency, Math.abs(amount))}
+      </div>
     </>
   )
 }
