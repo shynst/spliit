@@ -325,16 +325,10 @@ export function ExpenseForm({
                   <FormControl>
                     <Select
                       onValueChange={(value: typeof expenseType) => {
-                        const v = form.getValues()
-                        let p = v.paidFor
-
                         if (value === 'REIMBURSEMENT') {
-                          p = p.filter((pf) => pf.participant !== v.paidBy)
                           form.setValue('category', 1)
                         }
-
-                        form.setValue(field.name, value as any)
-                        form.setValue('paidFor', p, MarkDirty)
+                        form.setValue(field.name, value)
                         setExpenseType(value)
                       }}
                       defaultValue={field.value}
@@ -477,57 +471,58 @@ export function ExpenseForm({
                           control={form.control}
                           name="paidFor"
                           render={({ field }) => {
+                            const checkParticipant = (check: boolean) => {
+                              const v = check
+                                ? [
+                                    ...field.value,
+                                    {
+                                      participant: id,
+                                      shares: '1' as unknown as number,
+                                    },
+                                  ]
+                                : field.value.filter(
+                                    (p) => p.participant !== id,
+                                  )
+                              form.setValue(field.name, v, MarkDirty)
+                            }
+
+                            const formValues = form.getValues()
+                            const isDisabled =
+                              formValues.expenseType === 'REIMBURSEMENT' &&
+                              formValues.paidBy === id
+                            const checkIndex = field.value.findIndex(
+                              (p) => p.participant === id,
+                            )
+                            const isChecked = checkIndex >= 0
+
+                            if (isChecked && isDisabled) checkParticipant(false)
+
+                            const splitMode = formValues.splitMode
+
                             return (
                               <div
-                                data-id={`${id}/${form.getValues().splitMode}/${
-                                  group.currency
-                                }`}
+                                data-id={`${id}/${splitMode}/${group.currency}`}
                                 className="flex items-center border-t last-of-type:border-b last-of-type:!mb-1 -mx-6 px-6 py-3"
                               >
                                 <FormItem className="flex-1 flex flex-row items-start space-x-3 space-y-0">
                                   <FormControl>
                                     <Checkbox
-                                      checked={field.value?.some(
-                                        ({ participant }) => participant === id,
-                                      )}
-                                      onCheckedChange={(checked) => {
-                                        const v: any = checked
-                                          ? [
-                                              ...field.value,
-                                              {
-                                                participant: id,
-                                                shares: '1',
-                                              },
-                                            ]
-                                          : field.value?.filter(
-                                              (value) =>
-                                                value.participant !== id,
-                                            )
-
-                                        form.setValue(field.name, v, MarkDirty)
-                                      }}
+                                      disabled={isDisabled}
+                                      checked={isChecked}
+                                      onCheckedChange={checkParticipant}
                                     />
                                   </FormControl>
                                   <FLabel className="text-sm font-normal flex-1">
                                     {name}
                                   </FLabel>
                                 </FormItem>
-                                {form.getValues().splitMode !== 'EVENLY' && (
+                                {splitMode !== 'EVENLY' && isChecked && (
                                   <FormField
-                                    name={`paidFor[${field.value.findIndex(
-                                      ({ participant }) => participant === id,
-                                    )}].shares`}
+                                    name={`paidFor[${checkIndex}].shares`}
                                     render={() => {
                                       const sharesLabel = (
-                                        <span
-                                          className={cn('text-sm', {
-                                            'text-muted': !field.value?.some(
-                                              ({ participant }) =>
-                                                participant === id,
-                                            ),
-                                          })}
-                                        >
-                                          {match(form.getValues().splitMode)
+                                        <span className="text-sm">
+                                          {match(splitMode)
                                             .with('BY_SHARES', () => (
                                               <>share(s)</>
                                             ))
@@ -545,25 +540,13 @@ export function ExpenseForm({
                                           <div className="flex gap-1 items-center">
                                             <FormControl>
                                               <Input
-                                                key={String(
-                                                  !field.value?.some(
-                                                    ({ participant }) =>
-                                                      participant === id,
-                                                  ),
-                                                )}
                                                 className="text-base w-[80px] -my-2"
                                                 type="text"
-                                                disabled={
-                                                  !field.value?.some(
-                                                    ({ participant }) =>
-                                                      participant === id,
-                                                  )
-                                                }
                                                 value={
                                                   field.value?.find(
                                                     ({ participant }) =>
                                                       participant === id,
-                                                  )?.shares
+                                                  )?.shares || ''
                                                 }
                                                 onChange={(event) => {
                                                   const v: any =
@@ -586,8 +569,7 @@ export function ExpenseForm({
                                                   )
                                                 }}
                                                 inputMode={
-                                                  form.getValues().splitMode ===
-                                                  'BY_AMOUNT'
+                                                  splitMode === 'BY_AMOUNT'
                                                     ? 'decimal'
                                                     : 'numeric'
                                                 }
