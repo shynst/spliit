@@ -189,13 +189,22 @@ export function ExpenseForm({
       : String(numPaid) + ' participants') +
     (formValues.splitMode !== 'EVENLY' ? ' unevenly' : '')
 
+  const [sm_describe, setSMDescribe] = useState(false)
+
   const FormDescription = ({
     fieldName,
     className,
     ...props
   }: { fieldName?: string } & React.ComponentProps<typeof FDescription>) =>
     !!(fieldName && form.getFieldState(fieldName as any).invalid) || (
-      <FDescription className={cn(className, 'hidden sm:block')} {...props} />
+      <FDescription
+        className={cn(
+          'max-sm:text-xs max-sm:!mt-1',
+          className,
+          !sm_describe && 'max-sm:hidden',
+        )}
+        {...props}
+      />
     )
 
   const scrollRef = useRef<HTMLFormElement>(null)
@@ -211,10 +220,19 @@ export function ExpenseForm({
         onSubmit={form.handleSubmit((values) => onSubmit(values))}
       >
         <Card>
-          <CardHeader className="pb-3 sm:pb-6">
+          <CardHeader className="pb-3 sm:pb-6 flex flex-row justify-between">
             <CardTitle>
               {(isCreate ? 'Create ' : 'Edit ') + s_transaction}
             </CardTitle>
+            <Button
+              className="sm:hidden px-3 py-0 !mt-0 h-auto"
+              onClick={(e) => {
+                e.preventDefault()
+                setSMDescribe(!sm_describe)
+              }}
+            >
+              ?
+            </Button>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-2 sm:gap-6">
             <FormField
