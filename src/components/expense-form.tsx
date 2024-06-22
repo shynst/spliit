@@ -421,7 +421,7 @@ export function ExpenseForm({
           <CardContent>
             <Collapsible className="group" open={showOptions}>
               {!!formValues.notes && (
-                <div className="text-sm my-2 sm:mb-4 group-[[data-state=open]]:hidden">
+                <div className="text-sm my-2 sm:mb-4 whitespace-pre-wrap group-[[data-state=open]]:hidden">
                   {formValues.notes}
                 </div>
               )}
