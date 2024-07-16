@@ -34,7 +34,8 @@ import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Save } from 'lucide-react'
+import * as SelectPrimitive from '@radix-ui/react-select'
+import { ChevronDown, Save } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -48,7 +49,7 @@ export type Props = {
   group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
   expense?: NonNullable<Awaited<ReturnType<typeof getExpense>>>
   categories: NonNullable<Awaited<ReturnType<typeof getCategories>>>
-  onSubmit: (values: ExpenseFormValues) => Promise<void>
+  onSubmit: (createNew: boolean, values: ExpenseFormValues) => Promise<void>
   onDelete?: () => Promise<void>
   runtimeFeatureFlags: RuntimeFeatureFlags
 }
@@ -79,6 +80,9 @@ export function ExpenseForm({
   runtimeFeatureFlags,
 }: Props) {
   const isCreate = expense === undefined
+  const [saveAsNew, setSaveAsNew] = useState(false)
+  const s_save = saveAsNew ? 'Save as New' : 'Save'
+
   const searchParams = useSearchParams()
   const getSelectedPayer = (field?: { value: string }) => {
     if (isCreate && typeof window !== 'undefined') {
@@ -213,7 +217,9 @@ export function ExpenseForm({
     <Form {...form}>
       <form
         ref={scrollRef}
-        onSubmit={form.handleSubmit((values) => onSubmit(values))}
+        onSubmit={form.handleSubmit((values) =>
+          onSubmit(isCreate || saveAsNew, values),
+        )}
       >
         <Card className="max-sm:mb-0">
           <CardHeader className="pb-3 sm:pb-6 flex flex-row justify-between">
@@ -709,7 +715,27 @@ export function ExpenseForm({
             loadingContent={isCreate ? <>Creating…</> : <>Saving…</>}
           >
             <Save className="w-4 h-4 mr-2" />
-            {isCreate ? <>Create</> : <>Save</>}
+            {isCreate ? (
+              <>Create</>
+            ) : (
+              <>
+                {s_save}
+                <Select
+                  onValueChange={(value) => setSaveAsNew(value === 'new')}
+                  defaultValue={saveAsNew ? 'new' : 'save'}
+                >
+                  <SelectPrimitive.Trigger className="px-1 py-1 -mr-3 text-sm focus:outline-none">
+                    <SelectPrimitive.Icon asChild>
+                      <ChevronDown />
+                    </SelectPrimitive.Icon>
+                  </SelectPrimitive.Trigger>
+                  <SelectContent>
+                    <SelectItem value="save">Save</SelectItem>
+                    <SelectItem value="new">Save as New</SelectItem>
+                  </SelectContent>
+                </Select>
+              </>
+            )}
           </SubmitButton>
           {!isCreate && onDelete && (
             <DeletePopup onDelete={onDelete}></DeletePopup>

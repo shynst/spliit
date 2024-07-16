@@ -20,7 +20,7 @@ export default async function ExpensePage({
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
 
-  async function createExpenseAction(values: unknown) {
+  async function createExpenseAction(_createNew: boolean, values: unknown) {
     'use server'
     const expenseFormValues = expenseFormSchema.parse(values)
     await createExpense(expenseFormValues, groupId)

@@ -1,6 +1,7 @@
 import { cached } from '@/app/cached-functions'
 import { ExpenseForm } from '@/components/expense-form'
 import {
+  createExpense,
   deleteExpense,
   getCategories,
   getExpense,
@@ -27,10 +28,15 @@ export default async function EditExpensePage({
   const expense = await getExpense(groupId, expenseId)
   if (!expense) notFound()
 
-  async function updateExpenseAction(values: unknown) {
+  async function updateOrCreateAction(createNew: boolean, values: unknown) {
     'use server'
     const expenseFormValues = expenseFormSchema.parse(values)
-    await updateExpense(groupId, expenseId, expenseFormValues)
+
+    if (createNew) {
+      await createExpense(expenseFormValues, groupId)
+    } else {
+      await updateExpense(groupId, expenseId, expenseFormValues)
+    }
     redirect(`/groups/${groupId}`)
   }
 
@@ -46,7 +52,7 @@ export default async function EditExpensePage({
         group={group}
         expense={expense}
         categories={categories}
-        onSubmit={updateExpenseAction}
+        onSubmit={updateOrCreateAction}
         onDelete={deleteExpenseAction}
         runtimeFeatureFlags={await getRuntimeFeatureFlags()}
       />
