@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { ExpenseFormValues, GroupFormValues } from '@/lib/schemas'
-import { Expense } from '@prisma/client'
+import { ActivityType, Expense, Group } from '@prisma/client'
 import { nanoid } from 'nanoid'
 
 export function randomId() {
@@ -29,6 +29,7 @@ export async function createGroup(groupFormValues: GroupFormValues) {
 export async function createExpense(
   expenseFormValues: ExpenseFormValues,
   groupId: string,
+  participantId: string | null,
 ): Promise<Expense> {
   const group = await getGroup(groupId)
   if (!group) throw new Error(`Invalid group ID: ${groupId}`)
@@ -41,7 +42,7 @@ export async function createExpense(
       throw new Error(`Invalid participant ID: ${participant}`)
   }
 
-  return prisma.expense.create({
+  const expense = await prisma.expense.create({
     data: {
       id: randomId(),
       groupId,
@@ -73,13 +74,20 @@ export async function createExpense(
       notes: expenseFormValues.notes,
     },
   })
+  await logActivity(expense, ActivityType.CREATE_EXPENSE, participantId)
+  return expense
 }
 
-export async function deleteExpense(expenseId: string) {
-  await prisma.expense.delete({
+export async function deleteExpense(
+  expenseId: string,
+  participantId: string | null,
+) {
+  const expense = await prisma.expense.delete({
     where: { id: expenseId },
     include: { paidFor: true, paidBy: true },
   })
+  if (expense)
+    await logActivity(expense, ActivityType.DELETE_EXPENSE, participantId)
 }
 
 export async function getGroupExpensesParticipants(groupId: string) {
@@ -107,15 +115,16 @@ export async function getGroups(groupIds: string[]) {
 }
 
 export async function updateExpense(
-  groupId: string,
   expenseId: string,
   expenseFormValues: ExpenseFormValues,
+  participantId: string | null,
 ) {
+  const existingExpense = await getExpense(expenseId)
+  if (!existingExpense) throw new Error(`Invalid expense ID: ${expenseId}`)
+
+  const groupId = existingExpense.groupId
   const group = await getGroup(groupId)
   if (!group) throw new Error(`Invalid group ID: ${groupId}`)
-
-  const existingExpense = await getExpense(groupId, expenseId)
-  if (!existingExpense) throw new Error(`Invalid expense ID: ${expenseId}`)
 
   for (const participant of [
     expenseFormValues.paidBy,
@@ -125,7 +134,7 @@ export async function updateExpense(
       throw new Error(`Invalid participant ID: ${participant}`)
   }
 
-  return prisma.expense.update({
+  const expense = await prisma.expense.update({
     where: { id: expenseId },
     data: {
       expenseDate: expenseFormValues.expenseDate,
@@ -184,16 +193,19 @@ export async function updateExpense(
       notes: expenseFormValues.notes,
     },
   })
+  await logActivity(expense, ActivityType.UPDATE_EXPENSE, participantId)
+  return expense
 }
 
 export async function updateGroup(
   groupId: string,
   groupFormValues: GroupFormValues,
+  participantId: string | null,
 ) {
   const existingGroup = await getGroup(groupId)
   if (!existingGroup) throw new Error('Invalid group ID')
 
-  return prisma.group.update({
+  const group = await prisma.group.update({
     where: { id: groupId },
     data: {
       name: groupFormValues.name,
@@ -221,6 +233,8 @@ export async function updateGroup(
       },
     },
   })
+  await logActivity(group, ActivityType.UPDATE_GROUP, participantId)
+  return group
 }
 
 export async function getGroup(groupId: string) {
@@ -267,9 +281,37 @@ export async function getGroupExpenseCount(groupId: string) {
   return prisma.expense.count({ where: { groupId } })
 }
 
-export async function getExpense(groupId: string, expenseId: string) {
+export async function getExpense(expenseId: string) {
   return prisma.expense.findUnique({
     where: { id: expenseId },
     include: { paidBy: true, paidFor: true, category: true, documents: true },
+  })
+}
+
+export async function getActivities(groupId: string) {
+  return prisma.activity.findMany({
+    where: { groupId },
+    orderBy: [{ time: 'desc' }],
+  })
+}
+
+async function logActivity(
+  entry: Group | Expense,
+  activity: ActivityType,
+  participantId: string | null,
+) {
+  const isExpense = (entry as Expense).amount !== undefined
+  const expenseId = isExpense ? (entry as Expense).id : undefined
+  const groupId = isExpense ? (entry as Expense).groupId : (entry as Group).id
+
+  return prisma.activity.create({
+    data: {
+      id: randomId(),
+      groupId,
+      expenseId,
+      participantId,
+      activityType: activity,
+      data: isExpense ? (entry as Expense).title : (entry as Group).name,
+    },
   })
 }

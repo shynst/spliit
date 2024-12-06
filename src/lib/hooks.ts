@@ -56,7 +56,7 @@ export function useActiveUser(groupId: string) {
   const [activeUser, setActiveUser] = useState<string | null>(null)
 
   useEffect(() => {
-    const activeUser = localStorage.getItem(`${groupId}-activeUser`)
+    const activeUser = localStorage?.getItem(`${groupId}-activeUser`) || null
     if (activeUser) setActiveUser(activeUser)
   }, [groupId])
 

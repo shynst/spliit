@@ -35,7 +35,7 @@ export default async function GroupPage({
   const publicBalances = getPublicBalances(reimbursements)
 
   return (
-    <div>
+    <>
       <Card>
         <CardHeader>
           <CardTitle>Balances</CardTitle>
@@ -68,6 +68,6 @@ export default async function GroupPage({
           />
         </CardContent>
       </Card>
-    </div>
+    </>
   )
 }

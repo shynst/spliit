@@ -19,6 +19,20 @@ const monthFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
 })
 
+export type DateTimeStyle = NonNullable<
+  ConstructorParameters<typeof Intl.DateTimeFormat>[1]
+>['dateStyle']
+
+export function formatDate(
+  date: Date,
+  options: { dateStyle?: DateTimeStyle; timeStyle?: DateTimeStyle } = {},
+) {
+  return date.toLocaleString('en-US', {
+    ...options,
+    timeZone: 'UTC',
+  })
+}
+
 export function formatExpenseDate(date: Date) {
   return dayFormatter.format(date)
 }
@@ -81,4 +95,14 @@ export function formatFileSize(size: number) {
   if (size > 1024 ** 2) return `${formatNumber(size / 1024 ** 2)} MB`
   if (size > 1024) return `${formatNumber(size / 1024)} kB`
   return `${formatNumber(size)} B`
+}
+
+export function normalizeString(input: string): string {
+  // Replaces special characters
+  // Input: áäåèéę
+  // Output: aaaeee
+  return input
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
 }

@@ -17,6 +17,7 @@ model Group {
   currency     String        @default("$")
   participants Participant[]
   expenses     Expense[]
+  activities   Activity[]
   createdAt    DateTime      @default(now())
 }
 
@@ -27,6 +28,7 @@ model Participant {
   groupId         String
   expensesPaidBy  Expense[]
   expensesPaidFor ExpensePaidFor[]
+  activities      Activity[]
 }
 
 model Category {
@@ -54,6 +56,7 @@ model Expense {
   createdAt       DateTime          @default(now())
   documents       ExpenseDocument[]
   notes           String?
+  activities      Activity[]
 }
 
 model ExpenseDocument {
@@ -86,4 +89,24 @@ model ExpensePaidFor {
   shares        Int         @default(1)
 
   @@id([expenseId, participantId])
+}
+
+model Activity {
+  id            String       @id
+  group         Group?       @relation(fields: [groupId], references: [id])
+  expense       Expense?     @relation(fields: [expenseId], references: [id])
+  participant   Participant? @relation(fields: [participantId], references: [id])
+  groupId       String?
+  expenseId     String?
+  participantId String?
+  time          DateTime     @default(now())
+  activityType  ActivityType
+  data          String
+}
+
+enum ActivityType {
+  UPDATE_GROUP
+  CREATE_EXPENSE
+  UPDATE_EXPENSE
+  DELETE_EXPENSE
 }

@@ -49,8 +49,12 @@ export type Props = {
   group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
   expense?: NonNullable<Awaited<ReturnType<typeof getExpense>>>
   categories: NonNullable<Awaited<ReturnType<typeof getCategories>>>
-  onSubmit: (createNew: boolean, values: ExpenseFormValues) => Promise<void>
-  onDelete?: () => Promise<void>
+  onSubmit: (
+    createNew: boolean,
+    values: ExpenseFormValues,
+    participantId: string | null,
+  ) => Promise<void>
+  onDelete?: (participantId: string | null) => Promise<void>
   runtimeFeatureFlags: RuntimeFeatureFlags
 }
 
@@ -83,16 +87,12 @@ export function ExpenseForm({
   const [saveAsNew, setSaveAsNew] = useState(false)
   const s_save = saveAsNew ? 'Save as New' : 'Save'
 
+  const activeUser = localStorage?.getItem(`${group.id}-activeUser`) || null
+
   const searchParams = useSearchParams()
-  const getSelectedPayer = (field?: { value: string }) => {
-    if (isCreate && typeof window !== 'undefined') {
-      const activeUser = localStorage.getItem(`${group.id}-activeUser`)
-      if (activeUser && activeUser !== 'None') {
-        return activeUser
-      }
-    }
-    return field?.value
-  }
+  const getSelectedPayer = (field?: { value: string }) =>
+    isCreate && activeUser && activeUser !== 'None' ? activeUser : field?.value
+
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: expense
@@ -218,7 +218,7 @@ export function ExpenseForm({
       <form
         ref={scrollRef}
         onSubmit={form.handleSubmit((values) =>
-          onSubmit(isCreate || saveAsNew, values),
+          onSubmit(isCreate || saveAsNew, values, activeUser),
         )}
       >
         <Card className="max-sm:mb-0">
@@ -738,7 +738,7 @@ export function ExpenseForm({
             )}
           </SubmitButton>
           {!isCreate && onDelete && (
-            <DeletePopup onDelete={onDelete}></DeletePopup>
+            <DeletePopup onDelete={() => onDelete(activeUser)}></DeletePopup>
           )}
           <Button variant="ghost" asChild>
             <Link href={`/groups/${group.id}`}>Cancel</Link>

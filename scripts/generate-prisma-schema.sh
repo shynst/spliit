@@ -23,7 +23,7 @@ else
         echo "${a//env(\"PRISMA_PROVIDER\")/\"${PROVIDER}\"}"
     done < "$PRISMA_SCHEMA_TEMPLATE" > "$PRISMA_SCHEMA"
 
-    cd prisma
+    cd prisma || exit
     rm -rf migrations
     ln -s "migrations_${PROVIDER}" migrations
 fi
