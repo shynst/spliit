@@ -189,7 +189,7 @@ export function CreateFromReceiptButton({
                     <Unknown />
                   )
                 ) : (
-                  '' || '…'
+                  '…'
                 )}
               </div>
             </div>
@@ -198,7 +198,12 @@ export function CreateFromReceiptButton({
               <div>
                 {receiptInfo ? (
                   receiptInfo.amount ? (
-                    <>{formatCurrency(groupCurrency, receiptInfo.amount)}</>
+                    <>
+                      {formatCurrency(
+                        groupCurrency,
+                        Math.round(100 * receiptInfo.amount),
+                      )}
+                    </>
                   ) : (
                     <Unknown />
                   )
