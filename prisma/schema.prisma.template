@@ -57,9 +57,9 @@ model Expense {
   createdAt     DateTime          @default(now())
   documents     ExpenseDocument[]
   notes         String?
-  prevVersion   Expense?          @relation("ExpenseHistory")
-  nextVersion   Expense?          @relation("ExpenseHistory", fields: [nextVersionId], references: [id])
-  nextVersionId String?           @unique
+  prevVersion   Expense?          @relation("ExpenseHistory", fields: [prevVersionId], references: [id])
+  nextVersion   Expense?          @relation("ExpenseHistory")
+  prevVersionId String?           @unique
   deleted       Boolean           @default(false)
 
   @@index([deleted])

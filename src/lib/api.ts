@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
 import { ExpenseFormValues, GroupFormValues } from '@/lib/schemas'
-import { Expense } from '@prisma/client'
 import { nanoid } from 'nanoid'
 
 export function randomId() {
@@ -30,7 +29,17 @@ export async function createExpense(
   expenseFormValues: ExpenseFormValues,
   groupId: string,
   participantId: string | null,
-): Promise<Expense> {
+) {
+  return prisma.expense.create({
+    data: await getCreateExpenseData(expenseFormValues, groupId, participantId),
+  })
+}
+
+async function getCreateExpenseData(
+  expenseFormValues: ExpenseFormValues,
+  groupId: string,
+  participantId: string | null,
+) {
   const group = await getGroup(groupId)
   if (!group) throw new Error(`Invalid group ID: ${groupId}`)
 
@@ -42,59 +51,93 @@ export async function createExpense(
       throw new Error(`Invalid participant ID: ${participant}`)
   }
 
-  return prisma.expense.create({
-    data: {
-      id: randomId(),
-      groupId,
-      createdById: participantId ?? undefined,
-      expenseDate: expenseFormValues.expenseDate,
-      categoryId: expenseFormValues.category,
-      amount: expenseFormValues.amount,
-      title: expenseFormValues.title,
-      paidById: expenseFormValues.paidBy,
-      splitMode: expenseFormValues.splitMode,
-      paidFor: {
-        createMany: {
-          data: expenseFormValues.paidFor.map((paidFor) => ({
-            participantId: paidFor.participant,
-            shares: paidFor.shares,
-          })),
-        },
+  return {
+    id: randomId(),
+    groupId,
+    createdById: participantId,
+    expenseDate: expenseFormValues.expenseDate,
+    categoryId: expenseFormValues.category,
+    amount: expenseFormValues.amount,
+    title: expenseFormValues.title,
+    paidById: expenseFormValues.paidBy,
+    splitMode: expenseFormValues.splitMode,
+    paidFor: {
+      createMany: {
+        data: expenseFormValues.paidFor.map((paidFor) => ({
+          participantId: paidFor.participant,
+          shares: paidFor.shares,
+        })),
       },
-      expenseType: expenseFormValues.expenseType,
-      documents: {
-        createMany: {
-          data: expenseFormValues.documents.map((doc) => ({
-            id: randomId(),
-            url: doc.url,
-            width: doc.width,
-            height: doc.height,
-          })),
-        },
-      },
-      notes: expenseFormValues.notes,
     },
-  })
+    expenseType: expenseFormValues.expenseType,
+    documents: {
+      createMany: {
+        data: expenseFormValues.documents.map((doc) => ({
+          id: randomId(),
+          url: doc.url,
+          width: doc.width,
+          height: doc.height,
+        })),
+      },
+    },
+    notes: expenseFormValues.notes,
+  }
+}
+
+export async function updateExpense(
+  expenseId: string,
+  expenseFormValues: ExpenseFormValues,
+  participantId: string | null,
+) {
+  const groupId =
+    (await prisma.expense.findUnique({ where: { id: expenseId } }))?.groupId ??
+    ''
+
+  const data = await getCreateExpenseData(
+    expenseFormValues,
+    groupId,
+    participantId,
+  )
+
+  try {
+    const [_, expense] = await prisma.$transaction([
+      prisma.expense.update({
+        where: { id: expenseId },
+        data: { deleted: true },
+      }),
+      prisma.expense.create({ data: { ...data, prevVersionId: expenseId } }),
+    ])
+
+    return expense
+  } catch {
+    throw new Error(`Failed to update expense: ${expenseId}`)
+  }
 }
 
 export async function deleteExpense(
   expenseId: string,
   participantId: string | null,
 ) {
-  const expense = await prisma.expense.findUnique({ where: { id: expenseId } })
-  if (!expense) return
-
-  expense.id = randomId()
-  expense.createdById = participantId
-  expense.createdAt = new Date()
-  expense.nextVersionId = null
-  expense.deleted = true
-
-  await prisma.expense.create({ data: expense })
-  await prisma.expense.update({
-    where: { id: expenseId },
-    data: { nextVersionId: expense.id, deleted: true },
-  })
+  try {
+    await prisma.$transaction(async (tx) => {
+      const expense = await tx.expense.update({
+        where: { id: expenseId },
+        data: { deleted: true },
+      })
+      tx.expense.create({
+        data: {
+          ...expense,
+          id: randomId(),
+          createdById: participantId,
+          createdAt: new Date(),
+          prevVersionId: expenseId,
+          deleted: true,
+        },
+      })
+    })
+  } catch {
+    throw new Error(`Failed to delete expense: ${expenseId}`)
+  }
 }
 
 export async function getGroupExpensesParticipants(groupId: string) {
@@ -119,25 +162,6 @@ export async function getGroups(groupIds: string[]) {
     ...group,
     createdAt: group.createdAt.toISOString(),
   }))
-}
-
-export async function updateExpense(
-  expenseId: string,
-  expenseFormValues: ExpenseFormValues,
-  participantId: string | null,
-) {
-  const groupId = (
-    await prisma.expense.findUnique({ where: { id: expenseId } })
-  )?.groupId
-  if (!groupId) throw new Error(`Invalid expense ID: ${expenseId}`)
-
-  const expense = await createExpense(expenseFormValues, groupId, participantId)
-  await prisma.expense.update({
-    where: { id: expenseId },
-    data: { nextVersionId: expense.id, deleted: true },
-  })
-
-  return expense
 }
 
 export async function updateGroup(
@@ -216,7 +240,7 @@ export async function getGroupExpenses(
       splitMode: true,
       createdById: true,
       createdAt: true,
-      nextVersionId: true,
+      prevVersionId: true,
       deleted: true,
     },
     where,
