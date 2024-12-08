@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { getActivities, getGroupExpenses } from '@/lib/api'
+import { getGroupExpenses } from '@/lib/api'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -23,8 +23,9 @@ export default async function ActivityPage({
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
 
-  const expenses = await getGroupExpenses(groupId)
-  const activities = await getActivities(groupId)
+  const expenseVersions = await getGroupExpenses(groupId, {
+    includeHistory: true,
+  })
 
   return (
     <>
@@ -40,8 +41,7 @@ export default async function ActivityPage({
             {...{
               groupId,
               participants: group.participants,
-              expenses,
-              activities,
+              expenseVersions,
             }}
           />
         </CardContent>

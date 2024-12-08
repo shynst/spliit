@@ -17,7 +17,6 @@ model Group {
   currency     String        @default("$")
   participants Participant[]
   expenses     Expense[]
-  activities   Activity[]
   createdAt    DateTime      @default(now())
 }
 
@@ -26,13 +25,13 @@ model Participant {
   name            String
   group           Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId         String
-  expensesPaidBy  Expense[]
+  expensesPaidBy  Expense[]        @relation("ExpensePayedBy")
   expensesPaidFor ExpensePaidFor[]
-  activities      Activity[]
+  expensesCreated Expense[]        @relation("ExpenseCreatedBy")
 }
 
 model Category {
-  id       Int       @id
+  id       Int       @id @default(autoincrement())
   grouping String
   name     String
   icon     String
@@ -40,23 +39,32 @@ model Category {
 }
 
 model Expense {
-  id              String            @id
-  group           Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  expenseDate     DateTime          @default(dbgenerated("CURRENT_DATE")) @db.Date
-  title           String
-  category        Category?         @relation(fields: [categoryId], references: [id])
-  categoryId      Int               @default(0)
-  amount          Int
-  paidBy          Participant       @relation(fields: [paidById], references: [id], onDelete: Cascade)
-  paidById        String
-  paidFor         ExpensePaidFor[]
-  groupId         String
-  expenseType     ExpenseType       @default(EXPENSE)
-  splitMode       SplitMode         @default(EVENLY)
-  createdAt       DateTime          @default(now())
-  documents       ExpenseDocument[]
-  notes           String?
-  activities      Activity[]
+  id            String            @id
+  group         Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  expenseDate   DateTime          @default(dbgenerated("CURRENT_DATE")) @db.Date
+  title         String
+  category      Category?         @relation(fields: [categoryId], references: [id])
+  categoryId    Int               @default(0)
+  amount        Int
+  paidBy        Participant       @relation("ExpensePayedBy", fields: [paidById], references: [id], onDelete: Cascade)
+  paidById      String
+  paidFor       ExpensePaidFor[]
+  groupId       String
+  expenseType   ExpenseType       @default(EXPENSE)
+  splitMode     SplitMode         @default(EVENLY)
+  createdBy     Participant?      @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById   String?
+  createdAt     DateTime          @default(now())
+  documents     ExpenseDocument[]
+  notes         String?
+  prevVersion   Expense?          @relation("ExpenseHistory")
+  nextVersion   Expense?          @relation("ExpenseHistory", fields: [nextVersionId], references: [id])
+  nextVersionId String?           @unique
+  deleted       Boolean           @default(false)
+
+  @@index([deleted])
+  @@index([expenseDate])
+  @@index([createdAt])
 }
 
 model ExpenseDocument {
@@ -64,7 +72,7 @@ model ExpenseDocument {
   url       String
   width     Int
   height    Int
-  Expense   Expense? @relation(fields: [expenseId], references: [id])
+  expense   Expense? @relation(fields: [expenseId], references: [id])
   expenseId String?
 }
 
@@ -89,24 +97,4 @@ model ExpensePaidFor {
   shares        Int         @default(1)
 
   @@id([expenseId, participantId])
-}
-
-model Activity {
-  id            String       @id
-  group         Group?       @relation(fields: [groupId], references: [id])
-  expense       Expense?     @relation(fields: [expenseId], references: [id])
-  participant   Participant? @relation(fields: [participantId], references: [id])
-  groupId       String?
-  expenseId     String?
-  participantId String?
-  time          DateTime     @default(now())
-  activityType  ActivityType
-  data          String
-}
-
-enum ActivityType {
-  UPDATE_GROUP
-  CREATE_EXPENSE
-  UPDATE_EXPENSE
-  DELETE_EXPENSE
 }

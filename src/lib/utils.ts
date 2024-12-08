@@ -18,19 +18,17 @@ const monthFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'long',
   year: 'numeric',
 })
+const timeFormatter = new Intl.DateTimeFormat('en-UK', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+})
 
-export type DateTimeStyle = NonNullable<
-  ConstructorParameters<typeof Intl.DateTimeFormat>[1]
->['dateStyle']
-
-export function formatDate(
-  date: Date,
-  options: { dateStyle?: DateTimeStyle; timeStyle?: DateTimeStyle } = {},
-) {
-  return date.toLocaleString('en-US', {
-    ...options,
-    timeZone: 'UTC',
-  })
+export function formatDate(date: Date) {
+  return timeFormatter.format(date)
 }
 
 export function formatExpenseDate(date: Date) {
