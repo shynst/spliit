@@ -163,7 +163,7 @@ export function RecentGroupListCard({
                 <div className="w-full flex items-center justify-between">
                   <div className="flex items-center">
                     <Users className="w-3 h-3 inline mr-1" />
-                    <span>{details._count.participants}</span>
+                    <span>{details.participantCount}</span>
                   </div>
                   <div className="flex items-center">
                     <Calendar className="w-3 h-3 inline mx-1" />

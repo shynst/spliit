@@ -29,11 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getCategories, getExpense, getGroup, randomId } from '@/lib/api'
+import { APIExpense, APIGroup, randomId } from '@/lib/api'
 import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Category } from '@prisma/client'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { ChevronDown, Save } from 'lucide-react'
 import Link from 'next/link'
@@ -46,9 +47,9 @@ import { extractCategoryFromTitle } from './expense-form-actions'
 import { Textarea } from './ui/textarea'
 
 export type Props = {
-  group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
-  expense?: NonNullable<Awaited<ReturnType<typeof getExpense>>>
-  categories: NonNullable<Awaited<ReturnType<typeof getCategories>>>
+  group: APIGroup
+  expense?: APIExpense
+  categories: Category[]
   onSubmit: (
     createNew: boolean,
     values: ExpenseFormValues,
@@ -102,13 +103,13 @@ export function ExpenseForm({
           amount: String(expense.amount / 100) as unknown as number, // hack
           category: expense.categoryId,
           paidBy: expense.paidById,
-          paidFor: expense.paidFor.map(({ participantId, shares }) => ({
-            participant: participantId,
+          paidFor: expense.paidFor.map(({ participant, shares }) => ({
+            participant: participant.id,
             shares: String(shares / 100) as unknown as number,
           })),
           splitMode: expense.splitMode,
           expenseType: expense.expenseType,
-          documents: expense.documents,
+          documents: [],
           notes: expense.notes || undefined,
         }
       : searchParams.get('reimbursement')

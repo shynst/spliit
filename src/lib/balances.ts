@@ -1,4 +1,4 @@
-import { getGroupExpenses } from '@/lib/api'
+import { APIExpense } from '@/lib/api'
 import { Participant } from '@prisma/client'
 import { match } from 'ts-pattern'
 
@@ -13,9 +13,7 @@ export type Reimbursement = {
   amount: number
 }
 
-export function getBalances(
-  expenses: NonNullable<Awaited<ReturnType<typeof getGroupExpenses>>>,
-): Balances {
+export function getBalances(expenses: APIExpense[]): Balances {
   const balances: Balances = {}
 
   for (const expense of expenses) {

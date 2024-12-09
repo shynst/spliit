@@ -3,11 +3,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Settings } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 
-type Props = {
-  groupId: string
-}
-
-export function GroupTabs({ groupId }: Props) {
+export function GroupTabs({ groupId }: { groupId: string }) {
   const pathname = usePathname()
   const value =
     pathname.replace(/\/groups\/[^\/]+\/([^/]+).*/, '$1') || 'expenses'
@@ -24,7 +20,7 @@ export function GroupTabs({ groupId }: Props) {
       <TabsList>
         <TabsTrigger value="expenses">Expenses</TabsTrigger>
         <TabsTrigger value="balances">Balances</TabsTrigger>
-        <TabsTrigger value="activity">Activity</TabsTrigger>
+        <TabsTrigger value="history">History</TabsTrigger>
         <TabsTrigger value="edit">
           <Settings strokeWidth={1.5} />
         </TabsTrigger>

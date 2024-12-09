@@ -1,5 +1,4 @@
 'use client'
-import { getGroupsAction } from '@/app/groups/actions'
 import { AddGroupByUrlButton } from '@/app/groups/add-group-by-url-button'
 import {
   RecentGroups,
@@ -8,7 +7,7 @@ import {
   getStarredGroups,
 } from '@/app/groups/recent-groups-helpers'
 import { Button } from '@/components/ui/button'
-import { getGroups } from '@/lib/api'
+import { getGroupsDetails } from '@/lib/api'
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { PropsWithChildren, SetStateAction, useEffect, useState } from 'react'
@@ -25,7 +24,7 @@ export type RecentGroupsState =
   | {
       status: 'complete'
       groups: RecentGroups
-      groupsDetails: Awaited<ReturnType<typeof getGroups>>
+      groupsDetails: Awaited<ReturnType<typeof getGroupsDetails>>
       starredGroups: string[]
       archivedGroups: string[]
     }
@@ -65,7 +64,8 @@ export function RecentGroupList() {
       starredGroups,
       archivedGroups,
     })
-    getGroupsAction(groupsInStorage.map((g) => g.id)).then((groupsDetails) => {
+
+    getGroupsDetails(groupsInStorage.map((g) => g.id)).then((groupsDetails) => {
       setState({
         status: 'complete',
         groups: groupsInStorage,

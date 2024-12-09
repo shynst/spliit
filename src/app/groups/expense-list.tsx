@@ -1,29 +1,25 @@
 'use client'
+
 import { ExpenseCard } from '@/app/groups/[groupId]/expenses/expense-card'
-import { getGroupExpensesAction } from '@/app/groups/[groupId]/expenses/expense-list-fetch-action'
+import { ExpenseHistoryCard } from '@/app/groups/[groupId]/history/expense-history-card'
 import { Button } from '@/components/ui/button'
 import { SearchBar } from '@/components/ui/search-bar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { APIExpense, APIGroup, getExpenseList } from '@/lib/api'
 import { formatExpenseGroupDate } from '@/lib/utils'
-import { Participant } from '@prisma/client'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 
-type ExpensesType = NonNullable<
-  Awaited<ReturnType<typeof getGroupExpensesAction>>
->
-
 type Props = {
-  expensesFirstPage: ExpensesType
+  group: APIGroup
+  expensesFirstPage: APIExpense[]
   expenseCount: number
-  participants: Participant[]
-  currency: string
-  groupId: string
+  includeHistory: boolean
 }
 
-function getGroupedExpensesByDate(expenses: ExpensesType) {
-  return expenses.reduce((result: { [key: string]: ExpensesType }, expense) => {
+function getGroupedExpensesByDate(expenses: APIExpense[]) {
+  return expenses.reduce((result: { [key: string]: APIExpense[] }, expense) => {
     const expenseGroup = formatExpenseGroupDate(expense.expenseDate)
     result[expenseGroup] = result[expenseGroup] ?? []
     result[expenseGroup].push(expense)
@@ -32,12 +28,12 @@ function getGroupedExpensesByDate(expenses: ExpensesType) {
 }
 
 export function ExpenseList({
+  group,
   expensesFirstPage,
   expenseCount,
-  currency,
-  participants,
-  groupId,
+  includeHistory,
 }: Props) {
+  const groupId = group.id
   const firstLen = expensesFirstPage.length
   const [searchText, setSearchText] = useState('')
   const [dataIndex, setDataIndex] = useState(firstLen)
@@ -50,6 +46,8 @@ export function ExpenseList({
   const { ref, inView } = useInView()
 
   useEffect(() => {
+    if (includeHistory) return
+
     let userId = null as string | null
     const newGroupUser = localStorage.getItem('newGroup-activeUser')
     const newUser = localStorage.getItem(`${groupId}-newUser`)
@@ -60,8 +58,8 @@ export function ExpenseList({
         localStorage.setItem(`${groupId}-activeUser`, 'None')
       } else {
         userId =
-          participants.find((p) => p.name === (newGroupUser || newUser))?.id ||
-          null
+          group.participants.find((p) => p.name === (newGroupUser || newUser))
+            ?.id || null
         if (userId) {
           localStorage.setItem(`${groupId}-activeUser`, userId)
         }
@@ -69,15 +67,16 @@ export function ExpenseList({
     } else userId = localStorage.getItem(`${groupId}-activeUser`)
 
     setActiveUserId(userId)
-  }, [groupId, participants])
+  }, [group.participants, groupId, includeHistory])
 
   useEffect(() => {
     const fetchNextPage = async () => {
       setIsFetching(true)
 
-      const newExpenses = await getGroupExpensesAction(groupId, {
+      const newExpenses = await getExpenseList(groupId, {
         offset: dataIndex,
         length: dataLen,
+        includeHistory,
       })
 
       if (newExpenses !== null) {
@@ -100,6 +99,7 @@ export function ExpenseList({
     groupId,
     hasMoreData,
     inView,
+    includeHistory,
     isFetching,
   ])
 
@@ -126,16 +126,23 @@ export function ExpenseList({
             >
               {expGroup}
             </div>
-            {exp.map((expense) => (
-              <ExpenseCard
-                key={expense.id}
-                expense={expense}
-                currency={currency}
-                groupId={groupId}
-                activeUserId={activeUserId}
-                numMembers={participants.length}
-              />
-            ))}
+            {exp.map((expense) =>
+              includeHistory ? (
+                <ExpenseHistoryCard
+                  key={expense.id}
+                  expense={expense}
+                  group={group}
+                />
+              ) : (
+                <ExpenseCard
+                  key={expense.id}
+                  expense={expense}
+                  group={group}
+                  activeUserId={activeUserId}
+                  numMembers={group.participants.length}
+                />
+              ),
+            )}
           </div>
         )
       })}

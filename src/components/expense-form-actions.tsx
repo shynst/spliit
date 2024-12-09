@@ -1,5 +1,5 @@
 'use server'
-import { getCategories } from '@/lib/api'
+import { cached } from '@/app/cached-functions'
 import { env } from '@/lib/env'
 import { formatCategoryForAIPrompt } from '@/lib/utils'
 import OpenAI from 'openai'
@@ -16,7 +16,7 @@ const limit = 40 // ~10 tokens
  */
 export async function extractCategoryFromTitle(description: string) {
   'use server'
-  const categories = await getCategories()
+  const categories = await cached.getCategories()
 
   const body: ChatCompletionCreateParamsNonStreaming = {
     model: 'gpt-3.5-turbo',

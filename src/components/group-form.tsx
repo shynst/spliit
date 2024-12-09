@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getGroup } from '@/lib/api'
+import { APIGroup } from '@/lib/api'
 import { useBaseUrl } from '@/lib/hooks'
 import { GroupFormValues, groupFormSchema } from '@/lib/schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -43,7 +43,7 @@ import { useEffect, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 
 export type Props = {
-  group?: Awaited<ReturnType<typeof getGroup>>
+  group?: APIGroup
   onSubmit: (groupFormValues: GroupFormValues) => Promise<void>
   protectedParticipantIds?: string[]
 }
@@ -68,7 +68,11 @@ export function GroupForm({
       : {
           name: '',
           currency: '',
-          participants: [{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }],
+          participants: [
+            { name: 'Stefan' },
+            { name: 'Johanna' },
+            { name: 'Alma' },
+          ],
         },
   })
   const { fields, append, remove } = useFieldArray({

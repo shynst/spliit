@@ -1,22 +1,15 @@
 import { Button } from '@/components/ui/button'
+import { APIGroup } from '@/lib/api'
 import { Reimbursement } from '@/lib/balances'
 import { formatCurrency } from '@/lib/utils'
-import { Participant } from '@prisma/client'
 import Link from 'next/link'
 
 type Props = {
+  group: APIGroup
   reimbursements: Reimbursement[]
-  participants: Participant[]
-  currency: string
-  groupId: string
 }
 
-export function ReimbursementList({
-  reimbursements,
-  participants,
-  currency,
-  groupId,
-}: Props) {
+export function ReimbursementList({ reimbursements, group }: Props) {
   if (reimbursements.length === 0) {
     return (
       <p className="px-6 text-sm pb-6">
@@ -25,7 +18,8 @@ export function ReimbursementList({
     )
   }
 
-  const getParticipant = (id: string) => participants.find((p) => p.id === id)
+  const getParticipant = (id: string) =>
+    group.participants.find((p) => p.id === id)
   return (
     <div className="text-sm">
       {reimbursements.map((reimbursement, index) => (
@@ -37,13 +31,13 @@ export function ReimbursementList({
             </div>
             <Button variant="link" asChild className="-mx-4 -my-3">
               <Link
-                href={`/groups/${groupId}/expenses/create?reimbursement=yes&from=${reimbursement.from}&to=${reimbursement.to}&amount=${reimbursement.amount}`}
+                href={`/groups/${group.id}/expenses/create?reimbursement=yes&from=${reimbursement.from}&to=${reimbursement.to}&amount=${reimbursement.amount}`}
               >
                 Mark as paid
               </Link>
             </Button>
           </div>
-          <div>{formatCurrency(currency, reimbursement.amount)}</div>
+          <div>{formatCurrency(group.currency, reimbursement.amount)}</div>
         </div>
       ))}
     </div>

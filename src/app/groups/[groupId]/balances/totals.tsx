@@ -1,5 +1,5 @@
 'use client'
-import { getGroup, getGroupExpenses } from '@/lib/api'
+import { APIExpense, APIGroup } from '@/lib/api'
 import { useActiveUser } from '@/lib/hooks'
 import {
   getTotalActiveUserPaidFor,
@@ -12,8 +12,8 @@ export function Totals({
   expenses,
   totalGroupSpendings,
 }: {
-  group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
-  expenses: NonNullable<Awaited<ReturnType<typeof getGroupExpenses>>>
+  group: APIGroup
+  expenses: APIExpense[]
   totalGroupSpendings: number
 }) {
   const activeUser = useActiveUser(group.id)

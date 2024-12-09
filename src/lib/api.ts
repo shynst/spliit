@@ -1,10 +1,27 @@
+'use server'
+
 import { cached } from '@/app/cached-functions'
 import { prisma } from '@/lib/prisma'
 import { ExpenseFormValues, GroupFormValues } from '@/lib/schemas'
-import { nanoid } from 'nanoid'
+import { nanoid as randomId } from 'nanoid'
 
-export function randomId() {
-  return nanoid()
+export type APIGroup = Awaited<ReturnType<typeof createGroup>>
+export type APIExpense = Awaited<ReturnType<typeof createExpense>>
+
+export { randomId }
+
+const groupIncludeParams = {
+  participants: { select: { id: true, name: true } },
+}
+const expenseIncludeParams = {
+  paidBy: { select: { id: true, name: true } },
+  paidFor: {
+    select: {
+      participant: { select: { id: true, name: true } },
+      shares: true,
+    },
+  },
+  category: { select: { id: true, icon: true } },
 }
 
 export async function createGroup(groupFormValues: GroupFormValues) {
@@ -22,21 +39,74 @@ export async function createGroup(groupFormValues: GroupFormValues) {
         },
       },
     },
-    include: { participants: true },
+    include: groupIncludeParams,
   })
 }
 
-export async function createExpense(
-  expenseFormValues: ExpenseFormValues,
+export async function updateGroup(
   groupId: string,
-  createdById: string | null,
-) {
-  return prisma.expense.create({
-    data: await getCreateExpenseData(expenseFormValues, groupId, createdById),
+  groupFormValues: GroupFormValues,
+): Promise<APIGroup> {
+  const existingGroup = await cached.getGroup(groupId)
+  if (!existingGroup) throw new Error('Invalid group ID')
+
+  const group = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      name: groupFormValues.name,
+      currency: groupFormValues.currency,
+      participants: {
+        deleteMany: existingGroup.participants.filter(
+          (p) => !groupFormValues.participants.some((p2) => p2.id === p.id),
+        ),
+        updateMany: groupFormValues.participants
+          .filter((participant) => participant.id !== undefined)
+          .map((participant) => ({
+            where: { id: participant.id },
+            data: {
+              name: participant.name,
+            },
+          })),
+        createMany: {
+          data: groupFormValues.participants
+            .filter((participant) => participant.id === undefined)
+            .map((participant) => ({
+              id: randomId(),
+              name: participant.name,
+            })),
+        },
+      },
+    },
+    include: groupIncludeParams,
+  })
+  return group
+}
+
+export async function getGroupsDetails(groupIds: string[]) {
+  return (
+    await prisma.group.findMany({
+      where: { id: { in: groupIds } },
+      select: {
+        id: true,
+        createdAt: true,
+        _count: { select: { participants: true } },
+      },
+    })
+  ).map((group) => ({
+    id: group.id,
+    participantCount: group._count.participants,
+    createdAt: group.createdAt.toISOString(),
+  }))
+}
+
+export async function getGroup(groupId: string): Promise<APIGroup | null> {
+  return prisma.group.findUnique({
+    where: { id: groupId },
+    include: groupIncludeParams,
   })
 }
 
-async function getCreateExpenseData(
+async function getCreateExpenseParams(
   expenseFormValues: ExpenseFormValues,
   groupId: string,
   createdById: string | null,
@@ -54,36 +124,50 @@ async function getCreateExpenseData(
   }
 
   return {
-    id: randomId(),
-    groupId,
-    createdById,
-    expenseDate: expenseFormValues.expenseDate,
-    categoryId: expenseFormValues.category,
-    amount: expenseFormValues.amount,
-    title: expenseFormValues.title,
-    paidById: expenseFormValues.paidBy,
-    splitMode: expenseFormValues.splitMode,
-    paidFor: {
-      createMany: {
-        data: expenseFormValues.paidFor.map((paidFor) => ({
-          participantId: paidFor.participant,
-          shares: paidFor.shares,
-        })),
+    data: {
+      id: randomId(),
+      groupId,
+      createdById,
+      expenseDate: expenseFormValues.expenseDate,
+      categoryId: expenseFormValues.category,
+      amount: expenseFormValues.amount,
+      title: expenseFormValues.title,
+      paidById: expenseFormValues.paidBy,
+      splitMode: expenseFormValues.splitMode,
+      paidFor: {
+        createMany: {
+          data: expenseFormValues.paidFor.map((paidFor) => ({
+            participantId: paidFor.participant,
+            shares: paidFor.shares,
+          })),
+        },
       },
-    },
-    expenseType: expenseFormValues.expenseType,
-    documents: {
-      createMany: {
-        data: expenseFormValues.documents.map((doc) => ({
-          id: randomId(),
-          url: doc.url,
-          width: doc.width,
-          height: doc.height,
-        })),
+      expenseType: expenseFormValues.expenseType,
+      documents: {
+        createMany: {
+          data: expenseFormValues.documents.map((doc) => ({
+            id: randomId(),
+            url: doc.url,
+            width: doc.width,
+            height: doc.height,
+          })),
+        },
       },
+      notes: expenseFormValues.notes,
+      prevVersionId: null as string | null,
     },
-    notes: expenseFormValues.notes,
+    include: expenseIncludeParams,
   }
+}
+
+export async function createExpense(
+  expenseFormValues: ExpenseFormValues,
+  groupId: string,
+  createdById: string | null,
+) {
+  return prisma.expense.create(
+    await getCreateExpenseParams(expenseFormValues, groupId, createdById),
+  )
 }
 
 export async function updateExpense(
@@ -91,12 +175,13 @@ export async function updateExpense(
   expenseId: string,
   groupId: string,
   updatedById: string | null,
-) {
-  const data = await getCreateExpenseData(
+): Promise<APIExpense> {
+  const params = await getCreateExpenseParams(
     expenseFormValues,
     groupId,
     updatedById,
   )
+  params.data.prevVersionId = expenseId
 
   try {
     const [_, expense] = await prisma.$transaction([
@@ -104,7 +189,7 @@ export async function updateExpense(
         where: { id: expenseId },
         data: { deleted: true },
       }),
-      prisma.expense.create({ data: { ...data, prevVersionId: expenseId } }),
+      prisma.expense.create(params),
     ])
     return expense
   } catch {
@@ -138,7 +223,43 @@ export async function deleteExpense(
   }
 }
 
-export async function getGroupExpensesParticipants(groupId: string) {
+export async function getExpenseList(
+  groupId: string,
+  options?: { offset?: number; length?: number; includeHistory?: boolean },
+): Promise<APIExpense[]> {
+  const where = options?.includeHistory
+    ? { groupId }
+    : { groupId, deleted: false }
+
+  return prisma.expense.findMany({
+    where,
+    include: expenseIncludeParams,
+    orderBy: [{ expenseDate: 'desc' }, { createdAt: 'desc' }],
+    skip: options?.offset,
+    take: options?.length,
+  })
+}
+
+export async function getExpenseCount(
+  groupId: string,
+  options?: { includeHistory?: boolean },
+) {
+  const where = options?.includeHistory
+    ? { groupId }
+    : { groupId, deleted: false }
+  return prisma.expense.count({ where })
+}
+
+export async function getExpense(
+  expenseId: string,
+): Promise<APIExpense | null> {
+  return prisma.expense.findUnique({
+    where: { id: expenseId },
+    include: expenseIncludeParams,
+  })
+}
+
+export async function getExpensesParticipants(groupId: string) {
   const expenses = await prisma.expense.findMany({
     where: { groupId },
     select: {
@@ -156,118 +277,8 @@ export async function getGroupExpensesParticipants(groupId: string) {
   )
 }
 
-export async function getGroups(groupIds: string[]) {
-  return (
-    await prisma.group.findMany({
-      where: { id: { in: groupIds } },
-      include: { _count: { select: { participants: true } } },
-    })
-  ).map((group) => ({
-    ...group,
-    createdAt: group.createdAt.toISOString(),
-  }))
-}
-
-export async function updateGroup(
-  groupId: string,
-  groupFormValues: GroupFormValues,
-) {
-  const existingGroup = await cached.getGroup(groupId)
-  if (!existingGroup) throw new Error('Invalid group ID')
-
-  const group = await prisma.group.update({
-    where: { id: groupId },
-    data: {
-      name: groupFormValues.name,
-      currency: groupFormValues.currency,
-      participants: {
-        deleteMany: existingGroup.participants.filter(
-          (p) => !groupFormValues.participants.some((p2) => p2.id === p.id),
-        ),
-        updateMany: groupFormValues.participants
-          .filter((participant) => participant.id !== undefined)
-          .map((participant) => ({
-            where: { id: participant.id },
-            data: {
-              name: participant.name,
-            },
-          })),
-        createMany: {
-          data: groupFormValues.participants
-            .filter((participant) => participant.id === undefined)
-            .map((participant) => ({
-              id: randomId(),
-              name: participant.name,
-            })),
-        },
-      },
-    },
-  })
-  return group
-}
-
-export async function getGroup(groupId: string) {
-  return prisma.group.findUnique({
-    where: { id: groupId },
-    include: { participants: true },
-  })
-}
-
 export async function getCategories() {
   return prisma.category.findMany()
-}
-
-export async function getGroupExpenses(
-  groupId: string,
-  options?: { offset?: number; length?: number; includeHistory?: boolean },
-) {
-  const where = options?.includeHistory
-    ? { groupId }
-    : { groupId, deleted: false }
-
-  return prisma.expense.findMany({
-    select: {
-      id: true,
-      expenseDate: true,
-      title: true,
-      category: true,
-      amount: true,
-      paidBy: { select: { id: true, name: true } },
-      paidFor: {
-        select: {
-          participant: { select: { id: true, name: true } },
-          shares: true,
-        },
-      },
-      expenseType: true,
-      splitMode: true,
-      createdById: true,
-      createdAt: true,
-      prevVersionId: true,
-      deleted: true,
-    },
-    where,
-    orderBy: [{ expenseDate: 'desc' }, { createdAt: 'desc' }],
-    skip: options?.offset,
-    take: options?.length,
-  })
-}
-
-export async function getGroupExpenseCount(
-  groupId: string,
-  options?: { includeHistory?: boolean },
-) {
-  const where = options?.includeHistory
-    ? { groupId }
-    : { groupId, deleted: false }
-  return prisma.expense.count({ where })
-}
-
-export async function getExpense(expenseId: string) {
-  return prisma.expense.findUnique({
-    where: { id: expenseId },
-    include: { paidBy: true, paidFor: true, category: true, documents: true },
-  })
 }
 
 /*

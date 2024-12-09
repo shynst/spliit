@@ -1,5 +1,5 @@
 'use server'
-import { getCategories } from '@/lib/api'
+import { cached } from '@/app/cached-functions'
 import { env } from '@/lib/env'
 import { formatCategoryForAIPrompt } from '@/lib/utils'
 import OpenAI from 'openai'
@@ -9,7 +9,7 @@ const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY })
 
 export async function extractExpenseInformationFromImage(imageUrl: string) {
   'use server'
-  const categories = await getCategories()
+  const categories = await cached.getCategories()
 
   const body: ChatCompletionCreateParamsNonStreaming = {
     model: 'gpt-4-vision-preview',
@@ -22,7 +22,7 @@ export async function extractExpenseInformationFromImage(imageUrl: string) {
             text: `
               This image contains a receipt.
               Read the total amount and store it as a non-formatted number without any other text or currency.
-              Then guess the category for this receipt amoung the following categories and store its ID: ${categories.map(
+              Then guess the category for this receipt amount the following categories and store its ID: ${categories.map(
                 (category) => formatCategoryForAIPrompt(category),
               )}.
               Guess the expense’s date and store it as yyyy-mm-dd.

@@ -1,19 +1,17 @@
-import { getGroupExpenses } from '@/lib/api'
+import { APIExpense } from '@/lib/api'
 
-type Expenses = NonNullable<Awaited<ReturnType<typeof getGroupExpenses>>>
-
-function getBalance(expense: Expenses[number]) {
+function getBalance(expense: APIExpense) {
   const t = expense.expenseType
   return t === 'REIMBURSEMENT' ? 0 : (t === 'INCOME' ? -1 : 1) * expense.amount
 }
 
-export function getTotalGroupSpending(expenses: Expenses): number {
+export function getTotalGroupSpending(expenses: APIExpense[]): number {
   return expenses.reduce((total, expense) => total + getBalance(expense), 0)
 }
 
 export function getTotalActiveUserPaidFor(
   activeUserId: string | null,
-  expenses: Expenses,
+  expenses: APIExpense[],
 ): number {
   return expenses.reduce(
     (total, expense) =>
@@ -24,7 +22,7 @@ export function getTotalActiveUserPaidFor(
 
 export function getTotalActiveUserShare(
   activeUserId: string | null,
-  expenses: Expenses,
+  expenses: APIExpense[],
 ): number {
   let total = 0
 

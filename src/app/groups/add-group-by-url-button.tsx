@@ -1,4 +1,4 @@
-import { getGroupInfoAction } from '@/app/groups/add-group-by-url-button-actions'
+import { cached } from '@/app/cached-functions'
 import { saveRecentGroup } from '@/app/groups/recent-groups-helpers'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -48,7 +48,7 @@ export function AddGroupByUrlButton({ reload }: Props) {
                 new RegExp(`^(${window.location.origin}/groups/)?([^/]+)`),
               ) ?? []
             setPending(true)
-            const group = groupId ? await getGroupInfoAction(groupId) : null
+            const group = groupId ? await cached.getGroup(groupId) : null
             setPending(false)
             if (!group) {
               setError(true)

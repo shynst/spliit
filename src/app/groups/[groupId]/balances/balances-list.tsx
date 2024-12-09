@@ -1,21 +1,20 @@
+import { APIGroup } from '@/lib/api'
 import { Balances } from '@/lib/balances'
 import { cn, formatCurrency } from '@/lib/utils'
-import { Participant } from '@prisma/client'
 
 type Props = {
+  group: APIGroup
   balances: Balances
-  participants: Participant[]
-  currency: string
 }
 
-export function BalancesList({ balances, participants, currency }: Props) {
+export function BalancesList({ group, balances }: Props) {
   const maxBalance = Math.max(
     ...Object.values(balances).map((b) => Math.abs(b.total)),
   )
 
   return (
     <div className="text-sm">
-      {participants.map((participant) => {
+      {group.participants.map((participant) => {
         const balance = balances[participant.id]?.total ?? 0
         const isLeft = balance >= 0
         return (
@@ -28,7 +27,7 @@ export function BalancesList({ balances, participants, currency }: Props) {
             </div>
             <div className={cn('w-1/2 relative', isLeft || 'text-right')}>
               <div className="absolute inset-0 p-2 z-20">
-                {formatCurrency(currency, balance)}
+                {formatCurrency(group.currency, balance)}
               </div>
               {balance !== 0 && (
                 <div

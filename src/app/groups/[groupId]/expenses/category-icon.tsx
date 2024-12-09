@@ -1,10 +1,12 @@
-import { getGroupExpenses } from '@/lib/api'
+import { APIExpense } from '@/lib/api'
 import { cn, formatExpenseDate } from '@/lib/utils'
 import { Category } from '@prisma/client'
 import * as lucide from 'lucide-react'
 
-function getCategoryColor(category: Category | null) {
-  switch (Math.floor((category?.id || 0) / 100)) {
+type CatIcon = Pick<Category, 'id' | 'icon'>
+
+function getCategoryColor(id: number | undefined) {
+  switch (Math.floor((id || 0) / 100)) {
     case 1: // life
       return 'bg-amber-100'
     case 2: // home
@@ -24,7 +26,7 @@ export function CategoryIcon({
   category,
   coloredIcon,
   ...props
-}: { category: Category | null; coloredIcon?: boolean } & lucide.LucideProps) {
+}: { category: CatIcon | null; coloredIcon?: boolean } & lucide.LucideProps) {
   const Icon: lucide.LucideIcon =
     (category && (lucide as any)[category.icon]) ?? lucide.Banknote
   return (
@@ -34,20 +36,16 @@ export function CategoryIcon({
       color="black"
       className={cn(
         'w-5 h-5',
-        coloredIcon && getCategoryColor(category),
+        coloredIcon && getCategoryColor(category?.id),
         props.className,
       )}
     />
   )
 }
 
-export function CategoryExpenseIcon({
-  expense,
-}: {
-  expense: Awaited<ReturnType<typeof getGroupExpenses>>[number]
-}) {
+export function CategoryExpenseIcon({ expense }: { expense: APIExpense }) {
   const cat = expense.category
-  const catColor = getCategoryColor(cat)
+  const catColor = getCategoryColor(cat?.id)
 
   return (
     <div

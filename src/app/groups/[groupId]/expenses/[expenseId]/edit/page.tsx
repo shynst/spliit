@@ -3,7 +3,6 @@ import { ExpenseForm } from '@/components/expense-form'
 import {
   createExpense,
   deleteExpense,
-  getCategories,
   getExpense,
   updateExpense,
 } from '@/lib/api'
@@ -22,11 +21,11 @@ export default async function EditExpensePage({
 }: {
   params: { groupId: string; expenseId: string }
 }) {
-  const categories = await getCategories()
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
   const expense = await getExpense(expenseId)
   if (!expense) notFound()
+  const categories = await cached.getCategories()
 
   async function updateOrCreateAction(
     createNew: boolean,

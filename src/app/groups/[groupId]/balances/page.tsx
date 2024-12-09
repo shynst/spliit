@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { getGroupExpenses } from '@/lib/api'
+import { getExpenseList } from '@/lib/api'
 import {
   getBalances,
   getPublicBalances,
@@ -31,7 +31,7 @@ export default async function GroupPage({
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
 
-  const expenses = await getGroupExpenses(groupId)
+  const expenses = await getExpenseList(groupId)
   const totalGroupSpendings = getTotalGroupSpending(expenses)
   const balances = getBalances(expenses)
   const reimbursements = getSuggestedReimbursements(balances)
@@ -47,11 +47,7 @@ export default async function GroupPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <BalancesList
-            balances={publicBalances}
-            participants={group.participants}
-            currency={group.currency}
-          />
+          <BalancesList group={group} balances={publicBalances} />
         </CardContent>
       </Card>
       <Card>
@@ -63,12 +59,7 @@ export default async function GroupPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 sm:p-0">
-          <ReimbursementList
-            reimbursements={reimbursements}
-            participants={group.participants}
-            currency={group.currency}
-            groupId={groupId}
-          />
+          <ReimbursementList group={group} reimbursements={reimbursements} />
         </CardContent>
       </Card>
       <Card>

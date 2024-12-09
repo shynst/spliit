@@ -1,6 +1,6 @@
 import { cached } from '@/app/cached-functions'
 import { ExpenseForm } from '@/components/expense-form'
-import { createExpense, getCategories } from '@/lib/api'
+import { createExpense } from '@/lib/api'
 import { getRuntimeFeatureFlags } from '@/lib/featureFlags'
 import { expenseFormSchema } from '@/lib/schemas'
 import { Metadata } from 'next'
@@ -16,9 +16,9 @@ export default async function ExpensePage({
 }: {
   params: { groupId: string }
 }) {
-  const categories = await getCategories()
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
+  const categories = await cached.getCategories()
 
   async function createExpenseAction(
     _createNew: boolean,

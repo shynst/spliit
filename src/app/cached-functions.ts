@@ -1,4 +1,4 @@
-import { getGroup } from '@/lib/api'
+import { getCategories, getGroup } from '@/lib/api'
 import { cache } from 'react'
 
 function logAndCache<P extends any[], R>(fn: (...args: P) => R) {
@@ -14,4 +14,5 @@ function logAndCache<P extends any[], R>(fn: (...args: P) => R) {
 
 export const cached = {
   getGroup: logAndCache(getGroup),
+  getCategories: logAndCache(getCategories),
 }

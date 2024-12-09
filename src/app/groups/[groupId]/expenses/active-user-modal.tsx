@@ -19,16 +19,12 @@ import {
 } from '@/components/ui/drawer'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { getGroup } from '@/lib/api'
+import { APIGroup } from '@/lib/api'
 import { useMediaQuery } from '@/lib/hooks'
 import { cn } from '@/lib/utils'
 import { ComponentProps, useEffect, useState } from 'react'
 
-type Props = {
-  group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
-}
-
-export function ActiveUserModal({ group }: Props) {
+export function ActiveUserModal({ group }: { group: APIGroup }) {
   const [open, setOpen] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
@@ -98,7 +94,7 @@ function ActiveUserForm({
   group,
   close,
   className,
-}: ComponentProps<'form'> & { group: Props['group']; close: () => void }) {
+}: ComponentProps<'form'> & { group: APIGroup; close: () => void }) {
   const [selected, setSelected] = useState('None')
 
   return (

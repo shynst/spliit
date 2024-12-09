@@ -1,7 +1,7 @@
 'use client'
 import { CategoryExpenseIcon } from '@/app/groups/[groupId]/expenses/category-icon'
 import { Button } from '@/components/ui/button'
-import { getGroupExpenses } from '@/lib/api'
+import { APIExpense, APIGroup } from '@/lib/api'
 import { getBalances } from '@/lib/balances'
 import { cn, formatCurrency } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
@@ -10,21 +10,21 @@ import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 
 type Props = {
-  expense: Awaited<ReturnType<typeof getGroupExpenses>>[number]
-  currency: string
-  groupId: string
+  expense: APIExpense
+  group: APIGroup
   activeUserId: string | null
   numMembers: number
 }
 
 export function ExpenseCard({
   expense,
-  currency,
-  groupId,
+  group,
   activeUserId,
   numMembers,
 }: Props) {
   const router = useRouter()
+
+  const { id: groupId, currency } = group
 
   const amount = useMemo(() => {
     return (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount

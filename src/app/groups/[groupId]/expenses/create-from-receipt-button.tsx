@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/drawer'
 import { ToastAction } from '@/components/ui/toast'
 import { useToast } from '@/components/ui/use-toast'
+import { APIGroup } from '@/lib/api'
 import { useMediaQuery } from '@/lib/hooks'
 import { formatCurrency, formatExpenseDate, formatFileSize } from '@/lib/utils'
 import { Category } from '@prisma/client'
@@ -35,18 +36,13 @@ import { useRouter } from 'next/navigation'
 import { PropsWithChildren, ReactNode, useState } from 'react'
 
 type Props = {
-  groupId: string
-  groupCurrency: string
+  group: APIGroup
   categories: Category[]
 }
 
 const MAX_FILE_SIZE = 5 * 1024 ** 2
 
-export function CreateFromReceiptButton({
-  groupId,
-  groupCurrency,
-  categories,
-}: Props) {
+export function CreateFromReceiptButton({ group, categories }: Props) {
   const [pending, setPending] = useState(false)
   const { uploadToS3, FileInput, openFileDialog } = usePresignedUpload()
   const { toast } = useToast()
@@ -200,7 +196,7 @@ export function CreateFromReceiptButton({
                   receiptInfo.amount ? (
                     <>
                       {formatCurrency(
-                        groupCurrency,
+                        group.currency,
                         Math.round(100 * receiptInfo.amount),
                       )}
                     </>
@@ -237,7 +233,7 @@ export function CreateFromReceiptButton({
             onClick={() => {
               if (!receiptInfo) return
               router.push(
-                `/groups/${groupId}/expenses/create?amount=${
+                `/groups/${group.id}/expenses/create?amount=${
                   receiptInfo.amount
                 }&categoryId=${receiptInfo.categoryId}&date=${
                   receiptInfo.date
