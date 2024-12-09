@@ -63,18 +63,15 @@ function StatItem({
   label = label.replaceAll('$balance', balance)
 
   return (
-    <>
-      <label className="block mt-2 text-sm font-medium leading-none">
-        {label}
-      </label>
+    <div className="text-sm border-t p-4 sm:p-6 flex justify-between">
+      <div>{label}</div>
       <div
         className={cn(
-          'text-lg mb-4',
           colored && (amount < 0 ? 'text-green-600' : 'text-red-600'),
         )}
       >
         {formatCurrency(currency, Math.abs(amount))}
-      </div>
-    </>
+      </div>{' '}
+    </div>
   )
 }

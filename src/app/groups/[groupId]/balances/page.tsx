@@ -1,6 +1,7 @@
 import { cached } from '@/app/cached-functions'
-import { BalancesList } from '@/app/groups/[groupId]/balances-list'
-import { ReimbursementList } from '@/app/groups/[groupId]/reimbursement-list'
+import { BalancesList } from '@/app/groups/[groupId]/balances/balances-list'
+import { ReimbursementList } from '@/app/groups/[groupId]/balances/reimbursement-list'
+import { Totals } from '@/app/groups/[groupId]/balances/totals'
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
   getPublicBalances,
   getSuggestedReimbursements,
 } from '@/lib/balances'
+import { getTotalGroupSpending } from '@/lib/totals'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -30,6 +32,7 @@ export default async function GroupPage({
   if (!group) notFound()
 
   const expenses = await getGroupExpenses(groupId)
+  const totalGroupSpendings = getTotalGroupSpending(expenses)
   const balances = getBalances(expenses)
   const reimbursements = getSuggestedReimbursements(balances)
   const publicBalances = getPublicBalances(reimbursements)
@@ -65,6 +68,21 @@ export default async function GroupPage({
             participants={group.participants}
             currency={group.currency}
             groupId={groupId}
+          />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Totals</CardTitle>
+          <CardDescription>
+            Spending summary of the entire group.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-0">
+          <Totals
+            group={group}
+            expenses={expenses}
+            totalGroupSpendings={totalGroupSpendings}
           />
         </CardContent>
       </Card>
