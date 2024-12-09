@@ -1,3 +1,4 @@
+import { cached } from '@/app/cached-functions'
 import { prisma } from '@/lib/prisma'
 import { ExpenseFormValues, GroupFormValues } from '@/lib/schemas'
 import { nanoid } from 'nanoid'
@@ -28,22 +29,23 @@ export async function createGroup(groupFormValues: GroupFormValues) {
 export async function createExpense(
   expenseFormValues: ExpenseFormValues,
   groupId: string,
-  participantId: string | null,
+  createdById: string | null,
 ) {
   return prisma.expense.create({
-    data: await getCreateExpenseData(expenseFormValues, groupId, participantId),
+    data: await getCreateExpenseData(expenseFormValues, groupId, createdById),
   })
 }
 
 async function getCreateExpenseData(
   expenseFormValues: ExpenseFormValues,
   groupId: string,
-  participantId: string | null,
+  createdById: string | null,
 ) {
-  const group = await getGroup(groupId)
+  const group = await cached.getGroup(groupId)
   if (!group) throw new Error(`Invalid group ID: ${groupId}`)
 
   for (const participant of [
+    createdById,
     expenseFormValues.paidBy,
     ...expenseFormValues.paidFor.map((p) => p.participant),
   ]) {
@@ -54,7 +56,7 @@ async function getCreateExpenseData(
   return {
     id: randomId(),
     groupId,
-    createdById: participantId,
+    createdById,
     expenseDate: expenseFormValues.expenseDate,
     categoryId: expenseFormValues.category,
     amount: expenseFormValues.amount,
@@ -85,18 +87,15 @@ async function getCreateExpenseData(
 }
 
 export async function updateExpense(
-  expenseId: string,
   expenseFormValues: ExpenseFormValues,
-  participantId: string | null,
+  expenseId: string,
+  groupId: string,
+  updatedById: string | null,
 ) {
-  const groupId =
-    (await prisma.expense.findUnique({ where: { id: expenseId } }))?.groupId ??
-    ''
-
   const data = await getCreateExpenseData(
     expenseFormValues,
     groupId,
-    participantId,
+    updatedById,
   )
 
   try {
@@ -107,7 +106,6 @@ export async function updateExpense(
       }),
       prisma.expense.create({ data: { ...data, prevVersionId: expenseId } }),
     ])
-
     return expense
   } catch {
     throw new Error(`Failed to update expense: ${expenseId}`)
@@ -116,7 +114,7 @@ export async function updateExpense(
 
 export async function deleteExpense(
   expenseId: string,
-  participantId: string | null,
+  deletedById: string | null,
 ) {
   try {
     await prisma.$transaction(async (tx) => {
@@ -128,7 +126,7 @@ export async function deleteExpense(
         data: {
           ...expense,
           id: randomId(),
-          createdById: participantId,
+          createdById: deletedById,
           createdAt: new Date(),
           prevVersionId: expenseId,
           deleted: true,
@@ -141,12 +139,18 @@ export async function deleteExpense(
 }
 
 export async function getGroupExpensesParticipants(groupId: string) {
-  const expenses = await getGroupExpenses(groupId)
+  const expenses = await prisma.expense.findMany({
+    where: { groupId },
+    select: {
+      paidBy: { select: { id: true } },
+      paidFor: { select: { participantId: true } },
+    },
+  })
   return Array.from(
     new Set(
       expenses.flatMap((e) => [
         e.paidBy.id,
-        ...e.paidFor.map((pf) => pf.participant.id),
+        ...e.paidFor.map((pf) => pf.participantId),
       ]),
     ),
   )
@@ -167,9 +171,8 @@ export async function getGroups(groupIds: string[]) {
 export async function updateGroup(
   groupId: string,
   groupFormValues: GroupFormValues,
-  participantId: string | null,
 ) {
-  const existingGroup = await getGroup(groupId)
+  const existingGroup = await cached.getGroup(groupId)
   if (!existingGroup) throw new Error('Invalid group ID')
 
   const group = await prisma.group.update({
@@ -250,8 +253,14 @@ export async function getGroupExpenses(
   })
 }
 
-export async function getGroupExpenseCount(groupId: string) {
-  return prisma.expense.count({ where: { groupId, deleted: false } })
+export async function getGroupExpenseCount(
+  groupId: string,
+  options?: { includeHistory?: boolean },
+) {
+  const where = options?.includeHistory
+    ? { groupId }
+    : { groupId, deleted: false }
+  return prisma.expense.count({ where })
 }
 
 export async function getExpense(expenseId: string) {

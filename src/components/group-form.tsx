@@ -44,10 +44,7 @@ import { useFieldArray, useForm } from 'react-hook-form'
 
 export type Props = {
   group?: Awaited<ReturnType<typeof getGroup>>
-  onSubmit: (
-    groupFormValues: GroupFormValues,
-    participantId: string | null,
-  ) => Promise<void>
+  onSubmit: (groupFormValues: GroupFormValues) => Promise<void>
   protectedParticipantIds?: string[]
 }
 
@@ -109,7 +106,7 @@ export function GroupForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(async (values) => {
-          await onSubmit(values, activeUser)
+          await onSubmit(values)
         })}
       >
         <Card>

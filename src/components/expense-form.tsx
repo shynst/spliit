@@ -128,7 +128,7 @@ export function ExpenseForm({
                 }
               : undefined,
           ],
-          expenseType: 'EXPENSE',
+          expenseType: 'REIMBURSEMENT',
           splitMode: 'EVENLY',
           documents: [],
           notes: undefined,

@@ -39,7 +39,7 @@ export default async function EditExpensePage({
     if (createNew) {
       await createExpense(expenseFormValues, groupId, participantId)
     } else {
-      await updateExpense(expenseId, expenseFormValues, participantId)
+      await updateExpense(expenseFormValues, expenseId, groupId, participantId)
     }
     redirect(`/groups/${groupId}`)
   }
