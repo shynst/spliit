@@ -18,9 +18,12 @@ type Props = {
   includeHistory: boolean
 }
 
-function getGroupedExpensesByDate(expenses: APIExpense[]) {
+function getGroupedExpensesByDate(
+  expenses: APIExpense[],
+  dateField: 'expenseDate' | 'createdAt',
+) {
   return expenses.reduce((result: { [key: string]: APIExpense[] }, expense) => {
-    const expenseGroup = formatExpenseGroupDate(expense.expenseDate)
+    const expenseGroup = formatExpenseGroupDate(expense[dateField])
     result[expenseGroup] = result[expenseGroup] ?? []
     result[expenseGroup].push(expense)
     return result
@@ -34,6 +37,7 @@ export function ExpenseList({
   includeHistory,
 }: Props) {
   const groupId = group.id
+  const participants = group.participants
   const firstLen = expensesFirstPage.length
   const [searchText, setSearchText] = useState('')
   const [dataIndex, setDataIndex] = useState(firstLen)
@@ -46,8 +50,6 @@ export function ExpenseList({
   const { ref, inView } = useInView()
 
   useEffect(() => {
-    if (includeHistory) return
-
     let userId = null as string | null
     const newGroupUser = localStorage.getItem('newGroup-activeUser')
     const newUser = localStorage.getItem(`${groupId}-newUser`)
@@ -58,8 +60,8 @@ export function ExpenseList({
         localStorage.setItem(`${groupId}-activeUser`, 'None')
       } else {
         userId =
-          group.participants.find((p) => p.name === (newGroupUser || newUser))
-            ?.id || null
+          participants.find((p) => p.name === (newGroupUser || newUser))?.id ||
+          null
         if (userId) {
           localStorage.setItem(`${groupId}-activeUser`, userId)
         }
@@ -67,7 +69,7 @@ export function ExpenseList({
     } else userId = localStorage.getItem(`${groupId}-activeUser`)
 
     setActiveUserId(userId)
-  }, [group.participants, groupId, includeHistory])
+  }, [participants, groupId])
 
   useEffect(() => {
     const fetchNextPage = async () => {
@@ -104,8 +106,12 @@ export function ExpenseList({
   ])
 
   const groupedExpensesByDate = useMemo(
-    () => getGroupedExpensesByDate(expenses),
-    [expenses],
+    () =>
+      getGroupedExpensesByDate(
+        expenses,
+        includeHistory ? 'createdAt' : 'expenseDate',
+      ),
+    [expenses, includeHistory],
   )
 
   return expenses.length > 0 ? (
@@ -132,6 +138,7 @@ export function ExpenseList({
                   key={expense.id}
                   expense={expense}
                   group={group}
+                  activeUserId={activeUserId}
                 />
               ) : (
                 <ExpenseCard
@@ -139,7 +146,7 @@ export function ExpenseList({
                   expense={expense}
                   group={group}
                   activeUserId={activeUserId}
-                  numMembers={group.participants.length}
+                  numMembers={participants.length}
                 />
               ),
             )}

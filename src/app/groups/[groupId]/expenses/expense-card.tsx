@@ -42,7 +42,10 @@ export function ExpenseCard({
     return numParticipants > 0 && numParticipants < numMembers
       ? s_paid +
           (expense.expenseType === 'REIMBURSEMENT' ? ' ' : ' for ') +
-          expense.paidFor.map((p) => getName(p.participant) || you).join(', ')
+          expense.paidFor
+            .map((p) => getName(p.participant) || you)
+            .join(', ')
+            .replace(/,([^,]*)$/, ' and$1')
       : s_paid
   }, [activeUserId, amount, expense, numMembers])
 

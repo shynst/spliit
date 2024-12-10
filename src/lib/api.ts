@@ -6,7 +6,10 @@ import { ExpenseFormValues, GroupFormValues } from '@/lib/schemas'
 import { nanoid as randomId } from 'nanoid'
 
 export type APIGroup = Awaited<ReturnType<typeof createGroup>>
-export type APIExpense = Awaited<ReturnType<typeof createExpense>>
+export type APIExpense = Awaited<ReturnType<typeof createExpense>> & {
+  prevVersion?: APIExpense | null | undefined
+  createdBy?: { name: string } | null | undefined
+}
 
 export { randomId }
 
@@ -231,10 +234,21 @@ export async function getExpenseList(
     ? { groupId }
     : { groupId, deleted: false }
 
+  const include = options?.includeHistory
+    ? {
+        ...expenseIncludeParams,
+        prevVersion: true,
+        createdBy: { select: { name: true } },
+      }
+    : expenseIncludeParams
+
+  const sortE = { expenseDate: 'desc' } as const
+  const sortC = { createdAt: 'desc' } as const
+
   return prisma.expense.findMany({
     where,
-    include: expenseIncludeParams,
-    orderBy: [{ expenseDate: 'desc' }, { createdAt: 'desc' }],
+    include,
+    orderBy: options?.includeHistory ? [sortC] : [sortE, sortC],
     skip: options?.offset,
     take: options?.length,
   })
@@ -252,11 +266,21 @@ export async function getExpenseCount(
 
 export async function getExpense(
   expenseId: string,
+  options?: { includeHistory: boolean },
 ): Promise<APIExpense | null> {
-  return prisma.expense.findUnique({
+  const expense: APIExpense | null = await prisma.expense.findUnique({
     where: { id: expenseId },
     include: expenseIncludeParams,
   })
+
+  // if we want to include the history, we need to link all previous versions (recursively!)
+  if (options?.includeHistory) {
+    const prevVersionId = expense?.prevVersionId
+    if (prevVersionId)
+      expense.prevVersion = await getExpense(prevVersionId, options)
+  }
+
+  return expense
 }
 
 export async function getExpensesParticipants(groupId: string) {

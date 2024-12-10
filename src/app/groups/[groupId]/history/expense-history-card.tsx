@@ -6,11 +6,23 @@ import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-type Props = { expense: APIExpense; group: APIGroup }
+type Props = {
+  expense: APIExpense
+  group: APIGroup
+  activeUserId: string | null
+}
 
-export function ExpenseHistoryCard({ expense, group }: Props) {
+export function ExpenseHistoryCard({ expense, group, activeUserId }: Props) {
   const router = useRouter()
-  const summary = 'todo!'
+  const userName =
+    expense.createdById === activeUserId ? 'You' : expense.createdBy?.name ?? ''
+
+  const action = expense.prevVersion
+    ? expense.deleted
+      ? 'deleted'
+      : 'updated'
+    : 'created'
+  const summary = `${userName} ${action} "${expense.title}"`
 
   return (
     <div
