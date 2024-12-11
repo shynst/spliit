@@ -38,6 +38,5 @@ yarn-error.log*
 next-env.d.ts
 
 # db
-postgres-data
 /prisma/migrations
 /prisma/schema.prisma
