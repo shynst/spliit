@@ -3,7 +3,7 @@ import { CategoryExpenseIcon } from '@/app/groups/[groupId]/expenses/category-ic
 import { Button } from '@/components/ui/button'
 import { APIExpense, APIGroup } from '@/lib/api'
 import { getBalances } from '@/lib/balances'
-import { cn, formatCurrency } from '@/lib/utils'
+import { cn, formatCurrency, getPaymentInfo } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -30,24 +30,10 @@ export function ExpenseCard({
     return (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount
   }, [expense.amount, expense.expenseType])
 
-  const paymentInfo = useMemo(() => {
-    const getName = ({ id, name }: { id: string; name: string }) =>
-      id !== activeUserId ? name : null
-
-    const payer = getName(expense.paidBy) || 'You'
-    const you = payer === 'You' ? 'yourself' : 'you'
-    const numParticipants = expense.paidFor.length
-    const s_paid = payer + ' ' + (amount < 0 ? 'received' : 'paid')
-
-    return numParticipants > 0 && numParticipants < numMembers
-      ? s_paid +
-          (expense.expenseType === 'REIMBURSEMENT' ? ' ' : ' for ') +
-          expense.paidFor
-            .map((p) => getName(p.participant) || you)
-            .join(', ')
-            .replace(/,([^,]*)$/, ' and$1')
-      : s_paid
-  }, [activeUserId, amount, expense, numMembers])
+  const paymentInfo = useMemo(
+    () => getPaymentInfo(activeUserId, expense, numMembers),
+    [activeUserId, expense, numMembers],
+  )
 
   const balance = useMemo(() => {
     return activeUserId && expense.expenseType !== 'REIMBURSEMENT'
@@ -57,7 +43,6 @@ export function ExpenseCard({
 
   return (
     <div
-      key={expense.id}
       className={cn(
         'flex sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm cursor-pointer hover:bg-accent gap-1',
         expense.expenseType === 'REIMBURSEMENT' && 'italic',

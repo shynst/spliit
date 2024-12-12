@@ -1,3 +1,4 @@
+import { APIExpense } from '@/lib/api'
 import { Category } from '@prisma/client'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -19,20 +20,26 @@ const monthFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
 })
 const timeFormatter = new Intl.DateTimeFormat('en-UK', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
   hour: '2-digit',
   minute: '2-digit',
-  second: '2-digit',
 })
-
-export function formatDate(date: Date) {
-  return timeFormatter.format(date)
-}
 
 export function formatExpenseDate(date: Date) {
   return dayFormatter.format(date)
+}
+
+export function formatCreateDate(date: Date) {
+  const now = new Date()
+  const year = date.getFullYear()
+  const thisYear = now.getFullYear() === year
+  const today =
+    thisYear &&
+    now.getDate() === date.getDate() &&
+    now.getMonth() === date.getMonth()
+
+  if (today) return timeFormatter.format(date)
+
+  return dayFormatter.format(date) + (thisYear ? '' : ' ' + year)
 }
 
 export function formatExpenseGroupDate(date: Date) {
@@ -49,8 +56,8 @@ export function formatExpenseGroupDate(date: Date) {
 
   const diffDays = Math.floor((utcNow - utc) / MS_PER_DAY)
   if (diffDays <= 6) {
-    const day = date.getUTCDay()
-    const today = now.getUTCDay()
+    const day = date.getDay()
+    const today = now.getDay()
     if (day == today) return 'Today'
 
     if (day == BOUNDARY_DAY) return 'This week'
@@ -103,4 +110,34 @@ export function normalizeString(input: string): string {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+}
+
+export function getPaymentInfo(
+  activeUserId: string | null,
+  expense: APIExpense,
+  numMembers: number,
+): string {
+  const getName = ({ id, name }: { id: string; name: string }, you: string) =>
+    id !== activeUserId ? name : you
+
+  const numParticipants = expense.paidFor.length
+  const s_payer = getName(expense.paidBy, 'You')
+  const you = s_payer === 'You' ? 'yourself' : 'you'
+
+  const s_paid = expense.expenseType === 'INCOME' ? ' received' : ' paid'
+  const s_split =
+    expense.splitMode !== 'EVENLY'
+      ? ' (' + expense.paidFor.map((p) => p.shares / 100).join(':') + ')'
+      : ''
+  const s_for =
+    numParticipants > 0 && (numParticipants < numMembers || s_split)
+      ? (expense.expenseType === 'REIMBURSEMENT' ? ' ' : ' for ') +
+        expense.paidFor
+          .map((p) => getName(p.participant, you))
+          .join(', ')
+          .replace(/,([^,]*)$/, ' and$1') +
+        s_split
+      : ''
+
+  return s_payer + s_paid + s_for
 }

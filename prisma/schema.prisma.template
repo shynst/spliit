@@ -31,7 +31,7 @@ model Participant {
 }
 
 model Category {
-  id       Int       @id @default(autoincrement())
+  id       Int       @id
   grouping String
   name     String
   icon     String
@@ -50,19 +50,19 @@ model Expense {
   paidById      String
   paidFor       ExpensePaidFor[]
   groupId       String
+  expenseState  ExpenseState      @default(CURRENT)
   expenseType   ExpenseType       @default(EXPENSE)
   splitMode     SplitMode         @default(EVENLY)
+  createdAt     DateTime          @default(now())
   createdBy     Participant?      @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdById   String?
-  createdAt     DateTime          @default(now())
   documents     ExpenseDocument[]
   notes         String?
   prevVersion   Expense?          @relation("ExpenseHistory", fields: [prevVersionId], references: [id])
   nextVersion   Expense?          @relation("ExpenseHistory")
   prevVersionId String?           @unique
-  deleted       Boolean           @default(false)
 
-  @@index([deleted])
+  @@index([expenseState])
   @@index([expenseDate])
   @@index([createdAt])
 }
@@ -74,6 +74,12 @@ model ExpenseDocument {
   height    Int
   expense   Expense? @relation(fields: [expenseId], references: [id])
   expenseId String?
+}
+
+enum ExpenseState {
+  CURRENT
+  MODIFIED
+  DELETED
 }
 
 enum ExpenseType {

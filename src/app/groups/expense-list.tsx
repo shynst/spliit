@@ -132,24 +132,19 @@ export function ExpenseList({
             >
               {expGroup}
             </div>
-            {exp.map((expense) =>
-              includeHistory ? (
-                <ExpenseHistoryCard
-                  key={expense.id}
-                  expense={expense}
-                  group={group}
-                  activeUserId={activeUserId}
-                />
+            {exp.map((expense) => {
+              const args = {
+                expense,
+                group,
+                activeUserId,
+                numMembers: participants.length,
+              }
+              return includeHistory ? (
+                <ExpenseHistoryCard key={expense.id} {...args} />
               ) : (
-                <ExpenseCard
-                  key={expense.id}
-                  expense={expense}
-                  group={group}
-                  activeUserId={activeUserId}
-                  numMembers={participants.length}
-                />
-              ),
-            )}
+                <ExpenseCard key={expense.id} {...args} />
+              )
+            })}
           </div>
         )
       })}

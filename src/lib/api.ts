@@ -3,6 +3,7 @@
 import { cached } from '@/app/cached-functions'
 import { prisma } from '@/lib/prisma'
 import { ExpenseFormValues, GroupFormValues } from '@/lib/schemas'
+import equal from 'fast-deep-equal'
 import { nanoid as randomId } from 'nanoid'
 
 export type APIGroup = Awaited<ReturnType<typeof createGroup>>
@@ -146,17 +147,7 @@ async function getCreateExpenseParams(
         },
       },
       expenseType: expenseFormValues.expenseType,
-      documents: {
-        createMany: {
-          data: expenseFormValues.documents.map((doc) => ({
-            id: randomId(),
-            url: doc.url,
-            width: doc.width,
-            height: doc.height,
-          })),
-        },
-      },
-      notes: expenseFormValues.notes,
+      notes: expenseFormValues.notes || null,
       prevVersionId: null as string | null,
     },
     include: expenseIncludeParams,
@@ -179,22 +170,54 @@ export async function updateExpense(
   groupId: string,
   updatedById: string | null,
 ): Promise<APIExpense> {
-  const params = await getCreateExpenseParams(
+  const createParams = await getCreateExpenseParams(
     expenseFormValues,
     groupId,
     updatedById,
   )
-  params.data.prevVersionId = expenseId
+  createParams.data.prevVersionId = expenseId
+
+  const normalize = (
+    expense:
+      | Awaited<ReturnType<typeof getCreateExpenseParams>>['data']
+      | APIExpense,
+  ) =>
+    expense && {
+      ...expense,
+      id: undefined,
+      createdById: undefined,
+      createdAt: undefined,
+      paidBy: undefined,
+      category: undefined,
+      expenseState: undefined,
+      prevVersionId: undefined,
+      paidFor: (Array.isArray(expense.paidFor)
+        ? expense.paidFor.map((pf) => ({
+            participantId: pf.participant.id,
+            shares: pf.shares,
+          }))
+        : expense.paidFor.createMany.data
+      ).sort((a, b) => a.participantId.localeCompare(b.participantId)),
+    }
 
   try {
-    const [_, expense] = await prisma.$transaction([
-      prisma.expense.update({
+    return prisma.$transaction(async (tx) => {
+      const currExp = await tx.expense.findUnique({
         where: { id: expenseId },
-        data: { deleted: true },
-      }),
-      prisma.expense.create(params),
-    ])
-    return expense
+        include: expenseIncludeParams,
+      })
+      if (!currExp) throw new Error(`Invalid expense ID: ${expenseId}`)
+
+      if (equal(normalize(currExp), normalize(createParams.data)))
+        return currExp
+
+      await tx.expense.update({
+        where: { id: expenseId },
+        data: { expenseState: 'MODIFIED' },
+      })
+
+      return tx.expense.create(createParams)
+    })
   } catch {
     throw new Error(`Failed to update expense: ${expenseId}`)
   }
@@ -208,16 +231,16 @@ export async function deleteExpense(
     await prisma.$transaction(async (tx) => {
       const expense = await tx.expense.update({
         where: { id: expenseId },
-        data: { deleted: true },
+        data: { expenseState: 'MODIFIED' },
       })
-      tx.expense.create({
+      await tx.expense.create({
         data: {
           ...expense,
           id: randomId(),
           createdById: deletedById,
           createdAt: new Date(),
           prevVersionId: expenseId,
-          deleted: true,
+          expenseState: 'DELETED',
         },
       })
     })
@@ -232,12 +255,12 @@ export async function getExpenseList(
 ): Promise<APIExpense[]> {
   const where = options?.includeHistory
     ? { groupId }
-    : { groupId, deleted: false }
+    : ({ groupId, expenseState: 'CURRENT' } as const)
 
   const include = options?.includeHistory
     ? {
         ...expenseIncludeParams,
-        prevVersion: true,
+        prevVersion: { include: expenseIncludeParams },
         createdBy: { select: { name: true } },
       }
     : expenseIncludeParams
@@ -260,7 +283,7 @@ export async function getExpenseCount(
 ) {
   const where = options?.includeHistory
     ? { groupId }
-    : { groupId, deleted: false }
+    : ({ groupId, expenseState: 'CURRENT' } as const)
   return prisma.expense.count({ where })
 }
 

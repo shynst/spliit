@@ -2,6 +2,7 @@ import { APIExpense } from '@/lib/api'
 import { cn, formatExpenseDate } from '@/lib/utils'
 import { Category } from '@prisma/client'
 import * as lucide from 'lucide-react'
+import { HTMLAttributes } from 'react'
 
 type CatIcon = Pick<Category, 'id' | 'icon'>
 
@@ -43,19 +44,32 @@ export function CategoryIcon({
   )
 }
 
-export function CategoryExpenseIcon({ expense }: { expense: APIExpense }) {
+export function CategoryExpenseIcon({
+  expense,
+  textClassName,
+  ...props
+}: {
+  expense: APIExpense
+  textClassName?: string
+} & HTMLAttributes<HTMLDivElement>) {
   const cat = expense.category
   const catColor = getCategoryColor(cat?.id)
 
   return (
     <div
-      className={
-        'flex flex-col justify-center items-center not-italic p-1 rounded-sm ' +
-        catColor
-      }
+      className={cn(
+        'flex flex-col justify-center items-center not-italic p-1 rounded-sm',
+        catColor,
+        props.className,
+      )}
     >
       <CategoryIcon category={cat} className="mb-1" />
-      <div className="text-xs mx-0.5 text-muted-foreground dark:text-black">
+      <div
+        className={cn(
+          'text-xs mx-0.5 text-muted-foreground dark:text-black',
+          textClassName,
+        )}
+      >
         {formatExpenseDate(expense.expenseDate)}
       </div>
     </div>

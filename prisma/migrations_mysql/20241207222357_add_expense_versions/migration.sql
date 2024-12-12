@@ -4,13 +4,14 @@ DROP TABLE `Activity`;
 
 -- AlterTable
 ALTER TABLE `Expense`
-    ADD COLUMN `createdById` VARCHAR(191) NULL AFTER `splitMode`,
-    ADD COLUMN `prevVersionId` VARCHAR(191) NULL,
-    ADD COLUMN `deleted` BOOLEAN NOT NULL DEFAULT false;
+    ADD COLUMN `createdById` VARCHAR(191) NULL AFTER `createdAt`,
+    ADD COLUMN `expenseState` ENUM('CURRENT', 'MODIFIED', 'DELETED')
+        NOT NULL DEFAULT 'CURRENT' AFTER `groupId`,
+    ADD COLUMN `prevVersionId` VARCHAR(191) NULL;
 
 -- CreateIndex
 CREATE UNIQUE INDEX `Expense_prevVersionId_key` ON `Expense`(`prevVersionId`);
-CREATE INDEX `Expense_deleted_idx` ON `Expense`(`deleted`);
+CREATE INDEX `Expense_expenseState_idx` ON `Expense`(`expenseState`);
 CREATE INDEX `Expense_expenseDate_idx` ON `Expense`(`expenseDate`);
 CREATE INDEX `Expense_createdAt_idx` ON `Expense`(`createdAt`);
 
