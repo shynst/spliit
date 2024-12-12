@@ -9,6 +9,7 @@ import { nanoid as randomId } from 'nanoid'
 export type APIGroup = Awaited<ReturnType<typeof createGroup>>
 export type APIExpense = Awaited<ReturnType<typeof createExpense>> & {
   prevVersion?: APIExpense | null | undefined
+  nextVersion?: APIExpense | null | undefined
   createdBy?: { name: string } | null | undefined
 }
 
@@ -293,17 +294,37 @@ export async function getExpense(
   expenseId: string,
   options?: { includeHistory: boolean },
 ): Promise<APIExpense | null> {
-  const expense: APIExpense | null = await prisma.expense.findUnique({
-    where: { id: expenseId },
-    include: expenseIncludeParams,
-  })
+  let expense: APIExpense | null = null
 
-  // if we want to include the history, we need to link all previous versions (recursively!)
-  if (options?.includeHistory) {
-    const prevVersionId = expense?.prevVersionId
-    if (prevVersionId)
-      expense.prevVersion = await getExpense(prevVersionId, options)
-  }
+  try {
+    await prisma.$transaction(async (tx) => {
+      const get = (key: 'id' | 'prevVersionId', id: string) =>
+        tx.expense.findUnique({
+          where: { [key]: id } as any,
+          include: expenseIncludeParams,
+        })
+      expense = await get('id', expenseId)
+
+      if (expense && options?.includeHistory) {
+        const getBackwardHistory = async (exp: APIExpense) => {
+          const prev = exp.prevVersionId
+            ? await get('id', exp.prevVersionId)
+            : null
+          exp.prevVersion = prev
+          if (prev) await getBackwardHistory(prev)
+        }
+
+        const getForwardHistory = async (exp: APIExpense) => {
+          const next = await get('prevVersionId', exp.id)
+          exp.nextVersion = next
+          if (next) await getForwardHistory(next)
+        }
+
+        await getBackwardHistory(expense)
+        await getForwardHistory(expense)
+      }
+    })
+  } catch {}
 
   return expense
 }

@@ -104,7 +104,7 @@ export function ExpenseHistoryCard({
         : 'Notes changed'
       : null
 
-  const editLink = `/groups/${group.id}/expenses/${expense.id}/edit`
+  const editLink = `/groups/${group.id}/expenses/${expense.id}/view`
 
   return (
     <div
