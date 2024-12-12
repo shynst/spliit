@@ -253,11 +253,13 @@ export async function getExpenseList(
   groupId: string,
   options?: { offset?: number; length?: number; includeHistory?: boolean },
 ): Promise<APIExpense[]> {
-  const where = options?.includeHistory
+  const { offset, length, includeHistory = false } = options || {}
+
+  const where = includeHistory
     ? { groupId }
     : ({ groupId, expenseState: 'CURRENT' } as const)
 
-  const include = options?.includeHistory
+  const include = includeHistory
     ? {
         ...expenseIncludeParams,
         prevVersion: { include: expenseIncludeParams },
@@ -271,9 +273,9 @@ export async function getExpenseList(
   return prisma.expense.findMany({
     where,
     include,
-    orderBy: options?.includeHistory ? [sortC] : [sortE, sortC],
-    skip: options?.offset,
-    take: options?.length,
+    orderBy: includeHistory ? [sortC] : [sortE, sortC],
+    skip: offset,
+    take: length,
   })
 }
 

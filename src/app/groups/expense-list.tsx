@@ -3,10 +3,11 @@
 import { ExpenseCard } from '@/app/groups/[groupId]/expenses/expense-card'
 import { ExpenseHistoryCard } from '@/app/groups/[groupId]/history/expense-history-card'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { SearchBar } from '@/components/ui/search-bar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { APIExpense, APIGroup, getExpenseList } from '@/lib/api'
-import { formatExpenseGroupDate } from '@/lib/utils'
+import { formatExpenseGroupDate, normalizeString } from '@/lib/utils'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
@@ -40,6 +41,7 @@ export function ExpenseList({
   const participants = group.participants
   const firstLen = expensesFirstPage.length
   const [searchText, setSearchText] = useState('')
+  const [changesOnly, setChangesOnly] = useState(true)
   const [dataIndex, setDataIndex] = useState(firstLen)
   const [dataLen, setDataLen] = useState(firstLen)
   const [hasMoreData, setHasMoreData] = useState(expenseCount > firstLen)
@@ -117,10 +119,28 @@ export function ExpenseList({
   return expenses.length > 0 ? (
     <>
       <SearchBar onValueChange={(value) => setSearchText(value)} />
+      {includeHistory && (
+        <div className="flex items-center mx-4 sm:mx-6 space-x-3">
+          <Checkbox
+            checked={changesOnly}
+            onCheckedChange={(value) => setChangesOnly(!!value)}
+          />
+          <div className="block text-sm font-normal">Show changes only</div>
+        </div>
+      )}
       {Object.entries(groupedExpensesByDate).map(([expGroup, exp]) => {
-        exp = exp.filter(({ title }) =>
-          title.toLowerCase().includes(searchText.toLowerCase()),
-        )
+        if (searchText || (includeHistory && changesOnly)) {
+          exp = exp.filter(({ title, prevVersionId }) => {
+            if (!searchText) return prevVersionId !== null
+
+            const strFound = normalizeString(title).includes(
+              normalizeString(searchText),
+            )
+            if (!changesOnly) return strFound
+
+            return prevVersionId !== null && strFound
+          })
+        }
         if (exp.length === 0) return null
 
         return (
