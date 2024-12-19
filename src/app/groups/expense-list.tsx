@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { APIExpense, APIGroup, getExpenseList } from '@/lib/api'
 import { formatExpenseGroupDate, normalizeString } from '@/lib/utils'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 
@@ -37,11 +38,14 @@ export function ExpenseList({
   expenseCount,
   includeHistory,
 }: Props) {
+  const searchParams = useSearchParams()
+  const paramViewAll = !includeHistory || searchParams.get('v') === 'all'
+
   const groupId = group.id
   const participants = group.participants
   const firstLen = expensesFirstPage.length
   const [searchText, setSearchText] = useState('')
-  const [changesOnly, setChangesOnly] = useState(true)
+  const [viewAllEvents, setViewAllEvents] = useState(paramViewAll)
   const [dataIndex, setDataIndex] = useState(firstLen)
   const [dataLen, setDataLen] = useState(firstLen)
   const [hasMoreData, setHasMoreData] = useState(expenseCount > firstLen)
@@ -50,6 +54,17 @@ export function ExpenseList({
   const [activeUserId, setActiveUserId] = useState(null as string | null)
 
   const { ref, inView } = useInView()
+
+  useEffect(() => {
+    if (includeHistory) {
+      const sp = new URLSearchParams(searchParams)
+      if (viewAllEvents) sp.set('v', 'all')
+      else sp.delete('v')
+      const query = sp.size > 0 ? '?' + sp.toString() : ''
+
+      history.replaceState(null, '', window.location.pathname + query)
+    }
+  }, [includeHistory, searchParams, viewAllEvents])
 
   useEffect(() => {
     let userId = null as string | null
@@ -122,21 +137,23 @@ export function ExpenseList({
       {includeHistory && (
         <div className="flex items-center mx-4 sm:mx-6 space-x-3">
           <Checkbox
-            checked={changesOnly}
-            onCheckedChange={(value) => setChangesOnly(!!value)}
+            checked={viewAllEvents}
+            onCheckedChange={(value) => setViewAllEvents(!!value)}
           />
-          <div className="block text-sm font-normal">Show changes only</div>
+          <div className="block text-sm font-normal">
+            View all events, including expense creation
+          </div>
         </div>
       )}
       {Object.entries(groupedExpensesByDate).map(([expGroup, exp]) => {
-        if (searchText || (includeHistory && changesOnly)) {
+        if (searchText || (includeHistory && !viewAllEvents)) {
           exp = exp.filter(({ title, prevVersionId }) => {
             if (!searchText) return prevVersionId !== null
 
             const strFound = normalizeString(title).includes(
               normalizeString(searchText),
             )
-            if (!changesOnly) return strFound
+            if (viewAllEvents) return strFound
 
             return prevVersionId !== null && strFound
           })
