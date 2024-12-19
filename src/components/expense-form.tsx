@@ -2,7 +2,7 @@
 import { CategorySelector } from '@/components/category-selector'
 import { ExpenseDocumentsInput } from '@/components/expense-documents-input'
 import { SubmitButton } from '@/components/submit-button'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -712,32 +712,42 @@ export function ExpenseForm({
         )}
 
         <div className="flex mt-4 gap-2">
-          <SubmitButton
-            loadingContent={isCreate ? <>Creating…</> : <>Saving…</>}
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isCreate ? (
-              <>Create</>
-            ) : (
-              <>
+          {isCreate ? (
+            <SubmitButton loadingContent="Creating…">
+              <Save className="w-4 h-4 mr-2" />
+              Create
+            </SubmitButton>
+          ) : (
+            <div className="flex">
+              <SubmitButton
+                className="mr-0 pl-3 pr-1 rounded-r-none"
+                loadingContent="Saving…"
+              >
+                <Save className="w-4 h-4 mr-2" />
                 {s_save}
-                <Select
-                  onValueChange={(value) => setSaveAsNew(value === 'new')}
-                  defaultValue={saveAsNew ? 'new' : 'save'}
+              </SubmitButton>
+              <Select
+                onValueChange={(value) => setSaveAsNew(value === 'new')}
+                defaultValue={saveAsNew ? 'new' : 'save'}
+              >
+                <SelectPrimitive.Trigger
+                  className={cn(
+                    buttonVariants({
+                      className: 'pl-0 pr-2 rounded-l-none',
+                    }),
+                  )}
                 >
-                  <SelectPrimitive.Trigger className="px-1 py-1 -mr-3 text-sm focus:outline-none">
-                    <SelectPrimitive.Icon asChild>
-                      <ChevronDown />
-                    </SelectPrimitive.Icon>
-                  </SelectPrimitive.Trigger>
-                  <SelectContent>
-                    <SelectItem value="save">Save</SelectItem>
-                    <SelectItem value="new">Save as New</SelectItem>
-                  </SelectContent>
-                </Select>
-              </>
-            )}
-          </SubmitButton>
+                  <SelectPrimitive.Icon asChild>
+                    <ChevronDown />
+                  </SelectPrimitive.Icon>
+                </SelectPrimitive.Trigger>
+                <SelectContent>
+                  <SelectItem value="save">Save</SelectItem>
+                  <SelectItem value="new">Save as New</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           {!isCreate && onDelete && (
             <DeletePopup onDelete={() => onDelete(activeUser)}></DeletePopup>
           )}
