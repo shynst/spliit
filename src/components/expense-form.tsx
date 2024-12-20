@@ -38,13 +38,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Category } from '@prisma/client'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { ChevronDown, Save } from 'lucide-react'
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { match } from 'ts-pattern'
 import { DeletePopup } from './delete-popup'
 import { extractCategoryFromTitle } from './expense-form-actions'
+import { RouterButton } from './router-button'
 import { Textarea } from './ui/textarea'
 
 export type Props = {
@@ -752,9 +752,9 @@ export function ExpenseForm({
           {!isCreate && onDelete && (
             <DeletePopup onDelete={() => onDelete(activeUser)}></DeletePopup>
           )}
-          <Button variant="ghost" asChild>
-            <Link href={`/groups/${group.id}`}>Cancel</Link>
-          </Button>
+          <RouterButton variant="ghost" back>
+            Cancel
+          </RouterButton>
         </div>
       </form>
     </Form>
