@@ -26,7 +26,7 @@ const expenseIncludeParams = {
       shares: true,
     },
   },
-  category: { select: { id: true, icon: true } },
+  category: { select: { id: true, name: true, icon: true } },
 }
 
 export async function createGroup(groupFormValues: GroupFormValues) {
