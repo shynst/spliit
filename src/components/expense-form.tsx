@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select'
 import { APIExpense, APIGroup, randomId } from '@/lib/api'
 import { RuntimeFeatureFlags } from '@/lib/featureFlags'
+import { useActiveUser } from '@/lib/hooks'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -88,7 +89,7 @@ export function ExpenseForm({
   const [saveAsNew, setSaveAsNew] = useState(false)
   const s_save = saveAsNew ? 'Save as New' : 'Save'
 
-  const activeUser = localStorage?.getItem(`${group.id}-activeUser`) || null
+  const activeUser = useActiveUser(group.id)
 
   const searchParams = useSearchParams()
   const getSelectedPayer = (field?: { value: string }) =>

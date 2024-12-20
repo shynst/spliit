@@ -20,6 +20,7 @@ export default async function ViewExpensePage({
 }: {
   params: { groupId: string; expenseId: string }
 }) {
+  'use server'
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
   const expense = await getExpense(expenseId, { includeHistory: true })

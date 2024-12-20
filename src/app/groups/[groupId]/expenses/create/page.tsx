@@ -16,6 +16,7 @@ export default async function ExpensePage({
 }: {
   params: { groupId: string }
 }) {
+  'use server'
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
   const categories = await cached.getCategories()
