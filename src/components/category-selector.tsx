@@ -1,6 +1,6 @@
 import { ChevronDown, Loader2 } from 'lucide-react'
 
-import { CategoryIcon } from '@/app/groups/[groupId]/expenses/category-icon'
+import { CategoryIcon } from '@/components/category-icon'
 import { Button, ButtonProps } from '@/components/ui/button'
 import {
   Command,

@@ -1,5 +1,5 @@
 'use client'
-import { CategoryExpenseIcon } from '@/app/groups/[groupId]/expenses/category-icon'
+import { CategoryExpenseIcon } from '@/components/category-icon'
 import { Button } from '@/components/ui/button'
 import { APIExpense, APIGroup } from '@/lib/api'
 import {

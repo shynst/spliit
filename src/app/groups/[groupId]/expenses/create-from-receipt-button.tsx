@@ -1,10 +1,10 @@
 'use client'
 
-import { CategoryIcon } from '@/app/groups/[groupId]/expenses/category-icon'
 import {
   ReceiptExtractedInfo,
   extractExpenseInformationFromImage,
 } from '@/app/groups/[groupId]/expenses/create-from-receipt-button-actions'
+import { CategoryIcon } from '@/components/category-icon'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
