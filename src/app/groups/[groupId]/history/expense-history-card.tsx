@@ -8,7 +8,7 @@ import {
   formatCurrency,
   getPaymentInfo,
 } from '@/lib/utils'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
@@ -111,12 +111,16 @@ export function ExpenseHistoryCard({
       className="flex sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm cursor-pointer hover:bg-accent gap-1"
       onClick={() => router.push(editLink)}
     >
-      <div className="flex flex-col justify-center">
+      <div className="relative">
         <CategoryExpenseIcon
-          className={cn(catChanged && 'border-2 border-green-600')}
-          textClassName={cn(dateChanged && 'text-green-600 font-bold')}
+          textClassName={cn(
+            dateChanged && 'text-green-600 border-green-600 border-b-2',
+          )}
           expense={expense}
         />
+        {catChanged && (
+          <Sparkles className="absolute -top-2 -right-2 w-4 h-4 text-green-600 fill-green-600" />
+        )}
       </div>
       <div className="flex-1 ml-2 content-center">
         <div className="text-sm">
