@@ -33,7 +33,7 @@ import { APIExpense, APIGroup, randomId } from '@/lib/api'
 import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 import { useActiveUser } from '@/lib/hooks'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
-import { cn } from '@/lib/utils'
+import { cn, getPaymentInfo } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Category } from '@prisma/client'
 import * as SelectPrimitive from '@radix-ui/react-select'
@@ -77,6 +77,8 @@ const MarkDirty = {
   shouldValidate: true,
 } as const
 
+const someone = { name: 'Someone', id: '0' }
+
 export function ExpenseForm({
   group,
   expense,
@@ -94,6 +96,8 @@ export function ExpenseForm({
   const searchParams = useSearchParams()
   const getSelectedPayer = (field?: { value: string }) =>
     isCreate && activeUser && activeUser !== 'None' ? activeUser : field?.value
+
+  const members = group.participants
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
@@ -145,7 +149,7 @@ export function ExpenseForm({
             ? Number(searchParams.get('categoryId'))
             : 0, // category with Id 0 is General
           // paid for all, split evenly
-          paidFor: group.participants.map(({ id }) => ({
+          paidFor: members.map(({ id }) => ({
             participant: id,
             shares: '1' as unknown as number,
           })),
@@ -187,13 +191,20 @@ export function ExpenseForm({
     ' for ' +
     (numPaid === 0
       ? 'none'
-      : numPaid === 1
-      ? group.participants.find((p) => p.id === paidFor[0].participant)?.name ??
-        'one'
-      : numPaid === group.participants.length
+      : numPaid === members.length && formValues.splitMode === 'EVENLY'
       ? 'all'
-      : String(numPaid) + ' participants') +
-    (formValues.splitMode !== 'EVENLY' ? ' unevenly' : '')
+      : getPaymentInfo(
+          null,
+          {
+            paidFor: formValues.paidFor.map((pf) => ({
+              participant:
+                members.find((m) => m.id === pf.participant) ?? someone,
+              shares: 100 * pf.shares,
+            })),
+            splitMode: formValues.splitMode,
+          },
+          members.length,
+        ).expenseFor)
 
   const [sm_describe, setSMDescribe] = useState(false)
 
@@ -405,7 +416,7 @@ export function ExpenseForm({
                       <SelectValue placeholder="Select a participant" />
                     </SelectTrigger>
                     <SelectContent>
-                      {group.participants.map(({ id, name }) => (
+                      {members.map(({ id, name }) => (
                         <SelectItem key={id} value={id}>
                           {name}
                         </SelectItem>
@@ -454,11 +465,10 @@ export function ExpenseForm({
                     className="-my-2 -mx-4"
                     onClick={() => {
                       const paidFor = form.getValues().paidFor
-                      const allSelected =
-                        paidFor.length === group.participants.length
+                      const allSelected = paidFor.length === members.length
                       const newPaidFor = allSelected
                         ? []
-                        : group.participants.map((p) => ({
+                        : members.map((p) => ({
                             participant: p.id,
                             shares:
                               paidFor.find((pf) => pf.participant === p.id)
@@ -467,8 +477,7 @@ export function ExpenseForm({
                       form.setValue('paidFor', newPaidFor, MarkDirty)
                     }}
                   >
-                    {form.getValues().paidFor.length ===
-                    group.participants.length ? (
+                    {form.getValues().paidFor.length === members.length ? (
                       <>Select none</>
                     ) : (
                       <>Select all</>
@@ -480,7 +489,7 @@ export function ExpenseForm({
                   name="paidFor"
                   render={() => (
                     <FormItem className="row-span-2 space-y-0">
-                      {group.participants.map(({ id, name }) => (
+                      {members.map(({ id, name }) => (
                         <FormField
                           key={id}
                           control={form.control}

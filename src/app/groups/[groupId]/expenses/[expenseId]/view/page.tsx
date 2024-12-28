@@ -3,15 +3,11 @@ import { CategoryExpenseIcon } from '@/components/category-icon'
 import { RouterButton } from '@/components/router-button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { APIExpense, APIGroup, getExpense } from '@/lib/api'
-import {
-  cn,
-  formatCreateDate,
-  formatCurrency,
-  getPaymentInfo,
-} from '@/lib/utils'
+import { cn, formatCurrency, getPaymentString } from '@/lib/utils'
 import { Edit } from 'lucide-react'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { ExpenseHistory } from './expense-history'
 
 export const metadata: Metadata = { title: 'View expense' }
 
@@ -26,63 +22,31 @@ export default async function ViewExpensePage({
   const expense = await getExpense(expenseId, { includeHistory: true })
   if (!expense) notFound()
 
-  let str = 'NEXT VERSIONS\n\n'
-  let e = expense.nextVersion
-  const reversed: APIExpense[] = []
-  while (e) {
-    reversed.unshift(e)
-    e = e.nextVersion
-  }
-  for (const e of reversed) str += formatExpense(e)
+  const history: APIExpense[] = []
+  let e: APIExpense | null | undefined
+  for (e = expense.nextVersion; e; e = e.nextVersion) history.unshift(e)
+  for (e = expense; e; e = e.prevVersion) history.push(e)
 
-  str += '\n\nCURRENT\n\n' + formatExpense(expense)
-
-  str += '\n\nPREV VERSIONS\n\n'
-  e = expense.prevVersion
-  while (e) {
-    str += formatExpense(e)
-    e = e.prevVersion
-  }
-
-  return <ViewExpense group={group} expense={expense} historyTODO={str} />
+  return <ViewExpense group={group} expense={expense} history={history} />
 }
 
 function ViewExpense({
   group,
   expense,
-  historyTODO,
+  history,
 }: {
   group: APIGroup
   expense: APIExpense
-  historyTODO: string
+  history: APIExpense[]
 }) {
-  const paidFor = expense.paidFor
-  const numPaid = paidFor.length
-
   const eType = expense.expenseType
   const s_transaction =
     eType === 'REIMBURSEMENT'
       ? 'Refund'
       : eType[0] + eType.slice(1).toLowerCase()
 
-  const s_Paid = eType === 'INCOME' ? 'Received' : 'Paid'
-
-  const splitMode = expense.splitMode
-
-  const paidForTitle =
-    s_Paid +
-    ' for ' +
-    (numPaid === 0
-      ? 'none'
-      : numPaid === 1
-      ? paidFor[0].participant.name
-      : numPaid === group.participants.length
-      ? 'all'
-      : String(numPaid) + ' participants') +
-    (splitMode !== 'EVENLY' ? ' unevenly' : '')
-
   return (
-    <>
+    <div>
       <Card className="max-sm:mb-0">
         <CardHeader className="pb-3 sm:pb-6 flex flex-row justify-between">
           <CardTitle className="flex items-end gap-2">
@@ -97,8 +61,8 @@ function ViewExpense({
           </Item>
 
           <Item>
-            <ItemLabel>{s_Paid} by</ItemLabel>
-            <ItemContent>{expense.paidBy.name}</ItemContent>
+            <ItemLabel>Category</ItemLabel>
+            <ItemContent>{expense.category?.name || 'General'}</ItemContent>
           </Item>
 
           <Item>
@@ -115,9 +79,8 @@ function ViewExpense({
             </ItemContent>
           </Item>
 
-          <Item>
-            <ItemLabel>{s_Paid} for</ItemLabel>
-            <ItemContent>{paidForTitle}</ItemContent>
+          <Item className="col-span-2">
+            <ItemLabel>{getPaymentString(null, expense)}</ItemLabel>
           </Item>
 
           {!!expense.notes && (
@@ -135,7 +98,9 @@ function ViewExpense({
         <CardHeader>
           <CardTitle>Change Log</CardTitle>
         </CardHeader>
-        <CardContent className="whitespace-pre-line">{historyTODO}</CardContent>
+        <CardContent className="p-0 pt-2 pb-4 sm:p-0 sm:pb-6 flex flex-col gap-4">
+          <ExpenseHistory group={group} expense={expense} history={history} />
+        </CardContent>
       </Card>
 
       <div className="flex mt-4 gap-2">
@@ -147,7 +112,7 @@ function ViewExpense({
           Close
         </RouterButton>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -171,12 +136,6 @@ const ItemLabel = ({ children, className }: ItemProps) => (
 const ItemContent = ({ children, className }: ItemProps) => (
   <div className={cn('block sm:inline text-base', className)}>{children}</div>
 )
-
-const formatExpense = (expense: APIExpense) => {
-  return `${expense.id}: ${formatCreateDate(expense.createdAt)}: ${
-    expense.title
-  } ${getPaymentInfo(null, expense, 10)}\n`
-}
 
 function formatDate(date?: Date) {
   if (!date || isNaN(date as any)) date = new Date()

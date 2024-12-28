@@ -1,11 +1,9 @@
 'use client'
 import { CategoryExpenseIcon } from '@/components/category-icon'
-import { Button } from '@/components/ui/button'
 import { APIExpense, APIGroup } from '@/lib/api'
 import { getBalances } from '@/lib/balances'
-import { cn, formatCurrency, getPaymentInfo } from '@/lib/utils'
+import { cn, formatCurrency, getPaymentString } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 
@@ -30,8 +28,8 @@ export function ExpenseCard({
     return (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount
   }, [expense.amount, expense.expenseType])
 
-  const paymentInfo = useMemo(
-    () => getPaymentInfo(activeUserId, expense, numMembers),
+  const paymentString = useMemo(
+    () => getPaymentString(activeUserId, expense, numMembers),
     [activeUserId, expense, numMembers],
   )
 
@@ -56,7 +54,7 @@ export function ExpenseCard({
       </div>
       <div className="flex-1 ml-2">
         <div className="sm:text-base mt-2 sm:mt-1">{expense.title}</div>
-        <div className="text-xs text-muted-foreground">{paymentInfo}</div>
+        <div className="text-xs text-muted-foreground">{paymentString}</div>
       </div>
       <div
         className={
@@ -84,16 +82,7 @@ export function ExpenseCard({
           </div>
         ) : null}
       </div>
-      <Button
-        size="icon"
-        variant="link"
-        className="self-center hidden sm:flex"
-        asChild
-      >
-        <Link href={`/groups/${groupId}/expenses/${expense.id}/edit`}>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      </Button>
+      <ChevronRight className="ml-1 w-4 h-4 self-center hidden sm:block" />
     </div>
   )
 }

@@ -15,9 +15,10 @@ import { useInView } from 'react-intersection-observer'
 
 type Props = {
   group: APIGroup
-  expensesFirstPage: APIExpense[]
+  preloadedExpenses: APIExpense[]
   expenseCount: number
-  includeHistory: boolean
+  style: 'expenses' | 'history'
+  selectedExpenseId?: string
 }
 
 function getGroupedExpensesByDate(
@@ -34,23 +35,28 @@ function getGroupedExpensesByDate(
 
 export function ExpenseList({
   group,
-  expensesFirstPage,
+  preloadedExpenses,
   expenseCount,
-  includeHistory,
+  style,
+  selectedExpenseId,
 }: Props) {
   const searchParams = useSearchParams()
+  const includeHistory = style !== 'expenses'
+  const showSearchBar = !selectedExpenseId
   const paramViewAll = !includeHistory || searchParams.get('v') === 'all'
 
   const groupId = group.id
   const participants = group.participants
-  const firstLen = expensesFirstPage.length
+  const firstLen = preloadedExpenses.length
   const [searchText, setSearchText] = useState('')
-  const [viewAllEvents, setViewAllEvents] = useState(paramViewAll)
+  const [viewAllEvents, setViewAllEvents] = useState(
+    !showSearchBar || paramViewAll,
+  )
   const [dataIndex, setDataIndex] = useState(firstLen)
   const [dataLen, setDataLen] = useState(firstLen)
   const [hasMoreData, setHasMoreData] = useState(expenseCount > firstLen)
   const [isFetching, setIsFetching] = useState(false)
-  const [expenses, setExpenses] = useState(expensesFirstPage)
+  const [expenses, setExpenses] = useState(preloadedExpenses)
   const [activeUserId, setActiveUserId] = useState(null as string | null)
 
   const { ref, inView } = useInView()
@@ -133,8 +139,10 @@ export function ExpenseList({
 
   return expenses.length > 0 ? (
     <>
-      <SearchBar onValueChange={(value) => setSearchText(value)} />
-      {includeHistory && (
+      {showSearchBar && (
+        <SearchBar onValueChange={(value) => setSearchText(value)} />
+      )}
+      {includeHistory && showSearchBar && (
         <div className="flex items-center mx-4 sm:mx-6 space-x-3">
           <Checkbox
             checked={viewAllEvents}
@@ -177,7 +185,10 @@ export function ExpenseList({
                 numMembers: participants.length,
               }
               return includeHistory ? (
-                <ExpenseHistoryCard key={expense.id} {...args} />
+                <ExpenseHistoryCard
+                  key={expense.id}
+                  {...{ ...args, selected: selectedExpenseId === expense.id }}
+                />
               ) : (
                 <ExpenseCard key={expense.id} {...args} />
               )

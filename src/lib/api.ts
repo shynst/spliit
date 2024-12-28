@@ -315,9 +315,12 @@ export async function getExpense(
         }
 
         const getForwardHistory = async (exp: APIExpense) => {
-          const next = await get('prevVersionId', exp.id)
+          const next: APIExpense | null = await get('prevVersionId', exp.id)
           exp.nextVersion = next
-          if (next) await getForwardHistory(next)
+          if (next) {
+            next.prevVersion = exp
+            await getForwardHistory(next)
+          }
         }
 
         await getBackwardHistory(expense)

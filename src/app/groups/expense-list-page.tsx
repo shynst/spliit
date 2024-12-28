@@ -97,9 +97,9 @@ async function Expenses({ group, includeHistory }: Props) {
   return (
     <ExpenseList
       group={group}
-      expensesFirstPage={expenses}
+      preloadedExpenses={expenses}
       expenseCount={expenseCount}
-      includeHistory={includeHistory}
+      style={includeHistory ? 'history' : 'expenses'}
     />
   )
 }

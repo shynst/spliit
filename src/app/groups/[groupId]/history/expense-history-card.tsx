@@ -1,21 +1,20 @@
 'use client'
 import { CategoryExpenseIcon } from '@/components/category-icon'
-import { Button } from '@/components/ui/button'
 import { APIExpense, APIGroup } from '@/lib/api'
 import {
   cn,
   formatCreateDate,
   formatCurrency,
-  getPaymentInfo,
+  getPaymentString,
 } from '@/lib/utils'
 import { ChevronRight, Sparkles } from 'lucide-react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 
 type Props = {
   expense: APIExpense
   group: APIGroup
+  selected: boolean
   activeUserId: string | null
   numMembers: number
 }
@@ -52,6 +51,7 @@ function ChangeSpan({
 export function ExpenseHistoryCard({
   expense,
   group,
+  selected,
   activeUserId,
   numMembers,
 }: Props) {
@@ -64,23 +64,24 @@ export function ExpenseHistoryCard({
       : 'updated'
     : 'created'
   const currExp = action === 'deleted' ? null : expense
+  const selectable = action !== 'deleted' && !selected
 
   const amount = getAmount(group.currency, currExp)
   const amountPrev = getAmount(group.currency, prevExp)
 
-  const paymentInfo = useMemo(
-    () => currExp && getPaymentInfo(activeUserId, currExp, numMembers),
+  const paymentString = useMemo(
+    () => currExp && getPaymentString(activeUserId, currExp, numMembers),
     [activeUserId, currExp, numMembers],
   )
-  const prevPaymentInfo = useMemo(
-    () => prevExp && getPaymentInfo(activeUserId, prevExp, numMembers),
+  const prevPaymentString = useMemo(
+    () => prevExp && getPaymentString(activeUserId, prevExp, numMembers),
     [activeUserId, prevExp, numMembers],
   )
 
   const userName =
     expense.createdById === activeUserId
-      ? 'you'
-      : expense.createdBy?.name ?? 'someone'
+      ? 'You'
+      : expense.createdBy?.name ?? 'Someone'
 
   const summary =
     formatCreateDate(expense.createdAt) + `: ${userName} ${action}`
@@ -108,8 +109,12 @@ export function ExpenseHistoryCard({
 
   return (
     <div
-      className="flex sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm cursor-pointer hover:bg-accent gap-1"
-      onClick={() => router.push(editLink)}
+      className={cn([
+        'flex sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm gap-1',
+        selectable && 'cursor-pointer hover:bg-accent',
+        selected && 'border border-primary',
+      ])}
+      onClick={() => selectable && router.push(editLink)}
     >
       <div className="relative">
         <CategoryExpenseIcon
@@ -129,7 +134,7 @@ export function ExpenseHistoryCard({
           {'"'}
         </div>
         <div className="text-xs text-muted-foreground">
-          <ChangeSpan prev={prevPaymentInfo} curr={paymentInfo} />
+          <ChangeSpan prev={prevPaymentString} curr={paymentString} />
           {notesAction && (
             <>
               {', '}
@@ -149,16 +154,12 @@ export function ExpenseHistoryCard({
       <div className="flex flex-col items-end content-center font-bold whitespace-nowrap justify-center">
         <ChangeSpan prev={amountPrev} curr={amount} />
       </div>
-      <Button
-        size="icon"
-        variant="link"
-        className="self-center hidden sm:flex"
-        asChild
-      >
-        <Link href={editLink}>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      </Button>
+      <ChevronRight
+        className={cn([
+          'ml-1 w-4 h-4 self-center hidden sm:block',
+          !selectable && 'sm:invisible',
+        ])}
+      />
     </div>
   )
 }

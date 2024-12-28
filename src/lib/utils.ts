@@ -114,30 +114,45 @@ export function normalizeString(input: string): string {
 
 export function getPaymentInfo(
   activeUserId: string | null,
-  expense: APIExpense,
-  numMembers: number,
-): string {
-  const getName = ({ id, name }: { id: string; name: string }, you: string) =>
-    id !== activeUserId ? name : you
+  { paidFor, paidBy, splitMode }: Partial<APIExpense>,
+  numMembers?: number,
+) {
+  const getName = (p: { id: string; name: string } | undefined, you: string) =>
+    p?.id !== activeUserId ? p?.name ?? 'someone' : you
 
-  const numParticipants = expense.paidFor.length
-  const s_payer = getName(expense.paidBy, 'You')
-  const you = s_payer === 'You' ? 'yourself' : 'you'
+  const expenseBy = getName(paidBy, 'You')
+  const pFor = paidFor || []
 
-  const s_paid = expense.expenseType === 'INCOME' ? ' received' : ' paid'
-  const s_split =
-    expense.splitMode !== 'EVENLY'
-      ? ' (' + expense.paidFor.map((p) => p.shares / 100).join(':') + ')'
+  const smPFix = splitMode === 'BY_PERCENTAGE' ? '%' : ''
+  const smSep =
+    splitMode === 'BY_PERCENTAGE' || splitMode === 'BY_AMOUNT' ? '+' : ':'
+  const split =
+    pFor.length > 0 && splitMode !== 'EVENLY'
+      ? ' (' + pFor.map((p) => p.shares / 100).join(smSep) + smPFix + ')'
       : ''
-  const s_for =
-    numParticipants > 0 && (numParticipants < numMembers || s_split)
-      ? (expense.expenseType === 'REIMBURSEMENT' ? ' ' : ' for ') +
-        expense.paidFor
+
+  const you = expenseBy === 'You' ? 'yourself' : 'you'
+  const expenseFor =
+    pFor.length > 0 && (split || !numMembers || pFor.length < numMembers)
+      ? pFor
           .map((p) => getName(p.participant, you))
           .join(', ')
-          .replace(/,([^,]*)$/, ' and$1') +
-        s_split
+          .replace(/,([^,]*)$/, ' and$1') + split
       : ''
 
-  return s_payer + s_paid + s_for
+  return { expenseBy, expenseFor }
+}
+
+export function getPaymentString(
+  activeUserId: string | null,
+  expense: Partial<APIExpense>,
+  numMembers?: number,
+) {
+  const info = getPaymentInfo(activeUserId, expense, numMembers)
+
+  const paidFor =
+    (expense.expenseType === 'INCOME' ? ' received ' : ' paid ') +
+    (expense.expenseType !== 'REIMBURSEMENT' && info.expenseFor ? 'for ' : '')
+
+  return info.expenseBy + paidFor + info.expenseFor
 }
