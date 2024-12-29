@@ -110,7 +110,7 @@ export function ExpenseHistoryCard({
       className={cn([
         'flex sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm gap-1',
         selectable && 'cursor-pointer hover:bg-accent',
-        selected && 'border border-primary',
+        selected && 'border',
       ])}
       onClick={() => selectable && onClick()}
     >

@@ -3,7 +3,7 @@ import { CategoryExpenseIcon } from '@/components/category-icon'
 import { APIExpense, APIGroup } from '@/lib/api'
 import { getBalances } from '@/lib/balances'
 import { cn, formatCurrency, getPaymentString } from '@/lib/utils'
-import { ChevronRight, HistoryIcon, MessageSquare } from 'lucide-react'
+import { ChevronRight, HistoryIcon, MessageSquareText } from 'lucide-react'
 import { useMemo } from 'react'
 
 type Props = {
@@ -46,19 +46,17 @@ export function ExpenseCard({
       )}
       onClick={onClick}
     >
-      <div className="relative">
-        <div className="flex flex-col justify-center">
-          <CategoryExpenseIcon expense={expense} />
-        </div>
-        <div className="absolute -top-1 -right-1 text-muted-foreground flex flex-col gap-1">
-          {expense.notes && <MessageSquare className="w-3 h-3 fill-white" />}
+      <CategoryExpenseIcon expense={expense} />
+      <div className="flex-1 ml-2">
+        <div className="sm:text-base mt-2 sm:mt-1">
+          {expense.title}
+          {expense.notes && (
+            <MessageSquareText className="inline ml-1 mb-1 text-muted-foreground w-3 h-3" />
+          )}
           {expense.prevVersionId && (
-            <HistoryIcon className="w-3 h-3 fill-white" />
+            <HistoryIcon className="inline ml-1 mb-1 text-muted-foreground w-3 h-3" />
           )}
         </div>
-      </div>
-      <div className="flex-1 ml-2">
-        <div className="sm:text-base mt-2 sm:mt-1">{expense.title}</div>
         <div className="text-xs text-muted-foreground">{paymentString}</div>
       </div>
       <div
