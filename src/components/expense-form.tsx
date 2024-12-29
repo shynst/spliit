@@ -202,7 +202,7 @@ export function ExpenseForm({
             splitMode: formValues.splitMode,
           },
           members.length,
-        ).expenseFor)
+        ).transactionTo)
 
   const [sm_describe, setSMDescribe] = useState(false)
 
@@ -284,7 +284,7 @@ export function ExpenseForm({
               control={form.control}
               name="expenseDate"
               render={({ field }) => (
-                <FormItem className="order-4">
+                <FormItem className="order-5">
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Input
@@ -308,7 +308,7 @@ export function ExpenseForm({
               control={form.control}
               name="amount"
               render={({ field: { onChange, ...field } }) => (
-                <FormItem className="order-5">
+                <FormItem className="order-3">
                   <FormLabel>Amount in {group.currency}</FormLabel>
                   <FormControl>
                     <Input
@@ -404,7 +404,7 @@ export function ExpenseForm({
               control={form.control}
               name="paidBy"
               render={({ field }) => (
-                <FormItem className="order-3">
+                <FormItem className="order-4">
                   <FormLabel>{s_Paid} by</FormLabel>
                   <Select
                     onValueChange={field.onChange}

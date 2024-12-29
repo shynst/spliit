@@ -117,13 +117,13 @@ export function normalizeString(input: string): string {
 
 export function getPaymentInfo(
   activeUserId: string | null,
-  { paidFor, paidBy, splitMode }: Partial<APIExpense>,
+  { expenseType, paidFor, paidBy, splitMode }: Partial<APIExpense>,
   numMembers?: number,
 ) {
   const getName = (p: { id: string; name: string } | undefined, you: string) =>
     p?.id !== activeUserId ? p?.name ?? 'someone' : you
 
-  const expenseBy = getName(paidBy, 'You')
+  const transactionFrom = getName(paidBy, 'You')
   const pFor = paidFor || []
 
   const smPFix = splitMode === 'BY_PERCENTAGE' ? '%' : ''
@@ -134,8 +134,8 @@ export function getPaymentInfo(
       ? ' (' + pFor.map((p) => p.shares / 100).join(smSep) + smPFix + ')'
       : ''
 
-  const you = expenseBy === 'You' ? 'yourself' : 'you'
-  const expenseFor =
+  const you = transactionFrom === 'You' ? 'yourself' : 'you'
+  const transactionTo =
     pFor.length > 0 && (split || !numMembers || pFor.length < numMembers)
       ? pFor
           .map((p) => getName(p.participant, you))
@@ -143,7 +143,11 @@ export function getPaymentInfo(
           .replace(/,([^,]*)$/, ' and$1') + split
       : ''
 
-  return { expenseBy, expenseFor }
+  const action =
+    (expenseType === 'INCOME' ? 'received' : 'paid') +
+    (expenseType !== 'REIMBURSEMENT' && transactionTo ? ' for' : '')
+
+  return { transactionFrom, transactionTo, action }
 }
 
 export function getPaymentString(
@@ -152,10 +156,5 @@ export function getPaymentString(
   numMembers?: number,
 ) {
   const info = getPaymentInfo(activeUserId, expense, numMembers)
-
-  const paidFor =
-    (expense.expenseType === 'INCOME' ? ' received ' : ' paid ') +
-    (expense.expenseType !== 'REIMBURSEMENT' && info.expenseFor ? 'for ' : '')
-
-  return info.expenseBy + paidFor + info.expenseFor
+  return info.transactionFrom + ' ' + info.action + ' ' + info.transactionTo
 }

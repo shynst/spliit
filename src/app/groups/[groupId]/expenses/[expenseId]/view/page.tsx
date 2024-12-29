@@ -63,37 +63,15 @@ function ViewExpense({
             <div className="mb-1">{expense.title}</div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-2 sm:gap-6">
-          <Item>
-            <ItemLabel>ID</ItemLabel>
-            <ItemContent>{expense.id.substring(0, 8)}</ItemContent>
-          </Item>
-
-          <Item>
-            <ItemLabel>State</ItemLabel>
-            <ItemContent>{expense.expenseState}</ItemContent>
-          </Item>
-
-          <Item>
-            <ItemLabel>Type</ItemLabel>
-            <ItemContent>{s_transaction}</ItemContent>
-          </Item>
-
+        <CardContent className="grid grid-cols-2 gap-4 sm:gap-6">
           <Item>
             <ItemLabel>Category</ItemLabel>
             <ItemContent>{expense.category?.name || 'General'}</ItemContent>
           </Item>
 
           <Item>
-            <ItemLabel>Date</ItemLabel>
-            <ItemContent className="date-base">
-              {formatExpenseDate(expense.expenseDate, { withYear: true })}
-            </ItemContent>
-          </Item>
-
-          <Item>
-            <ItemLabel>Created By</ItemLabel>
-            <ItemContent className="date-base">
+            <ItemLabel>Created by</ItemLabel>
+            <ItemContent>
               {(expense.createdBy?.name || 'Someone') + ' at '}
               {formatCreateDate(expense.createdAt)}
             </ItemContent>
@@ -106,8 +84,19 @@ function ViewExpense({
             </ItemContent>
           </Item>
 
+          <Item>
+            <ItemLabel>
+              {eType === 'INCOME' ? 'Received by' : 'Paid by'}
+            </ItemLabel>
+            <ItemContent>
+              {(expense.paidBy?.name || 'Someone') + ' at '}
+              {formatExpenseDate(expense.expenseDate, { withYear: true })}
+            </ItemContent>
+          </Item>
+
           <Item className="col-span-2">
-            <ItemLabel>{getPaymentString(null, expense)}</ItemLabel>
+            <ItemLabel>{s_transaction}</ItemLabel>
+            <ItemContent>{getPaymentString(null, expense)}</ItemContent>
           </Item>
 
           {!!expense.notes && (
@@ -124,7 +113,7 @@ function ViewExpense({
       {history.length > 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Change Log</CardTitle>
+            <CardTitle>History</CardTitle>
           </CardHeader>
           <CardContent className="p-0 pt-2 pb-4 sm:p-0 sm:pb-6 flex flex-col gap-4">
             <ExpenseHistory group={group} expense={expense} history={history} />
@@ -152,17 +141,22 @@ interface ItemProps {
 }
 
 const Item = ({ children, className }: ItemProps) => (
-  <div className={cn('space-y-2 text-base', className)}>{children}</div>
+  <div className={cn('flex flex-col', className)}>{children}</div>
 )
 
 const ItemLabel = ({ children, className }: ItemProps) => (
-  <div
-    className={cn('block sm:inline mt-1 -mb-1 sm:mr-2 font-bold', className)}
-  >
+  <div className={cn('mt-3 sm:mt-0 text-sm sm:text-base', className)}>
     {children}
   </div>
 )
 
 const ItemContent = ({ children, className }: ItemProps) => (
-  <div className={cn('block sm:inline text-base', className)}>{children}</div>
+  <div
+    className={cn(
+      'mt-1 sm:mt-2 pb-1 text-xs text-muted-foreground border-b',
+      className,
+    )}
+  >
+    {children}
+  </div>
 )
