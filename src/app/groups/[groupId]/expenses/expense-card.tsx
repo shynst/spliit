@@ -4,7 +4,6 @@ import { APIExpense, APIGroup } from '@/lib/api'
 import { getBalances } from '@/lib/balances'
 import { cn, formatCurrency, getPaymentString } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 
 type Props = {
@@ -12,6 +11,7 @@ type Props = {
   group: APIGroup
   activeUserId: string | null
   numMembers: number
+  onClick: () => void
 }
 
 export function ExpenseCard({
@@ -19,11 +19,8 @@ export function ExpenseCard({
   group,
   activeUserId,
   numMembers,
+  onClick,
 }: Props) {
-  const router = useRouter()
-
-  const { id: groupId, currency } = group
-
   const amount = useMemo(() => {
     return (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount
   }, [expense.amount, expense.expenseType])
@@ -39,15 +36,15 @@ export function ExpenseCard({
       : 0
   }, [activeUserId, expense])
 
+  const currency = group.currency
+
   return (
     <div
       className={cn(
         'flex sm:mx-6 px-4 sm:rounded-lg sm:pr-2 sm:pl-4 py-2 text-sm cursor-pointer hover:bg-accent gap-1',
         expense.expenseType === 'REIMBURSEMENT' && 'italic',
       )}
-      onClick={() => {
-        router.push(`/groups/${groupId}/expenses/${expense.id}/edit`)
-      }}
+      onClick={onClick}
     >
       <div className="flex flex-col justify-center">
         <CategoryExpenseIcon expense={expense} />

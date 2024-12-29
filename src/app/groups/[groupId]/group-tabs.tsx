@@ -14,6 +14,7 @@ export function GroupTabs({ groupId }: { groupId: string }) {
       className="[&>*]:border"
       onValueChange={(value) => {
         router.push(`/groups/${groupId}/${value}`)
+        router.refresh()
       }}
     >
       <TabsList>

@@ -1,6 +1,8 @@
 'use client'
-
+import { APIExpense, deleteExpense } from '@/lib/api'
+import { useActiveUser } from '@/lib/hooks'
 import { Trash2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { AsyncButton } from './async-button'
 import { Button } from './ui/button'
 import {
@@ -13,7 +15,16 @@ import {
   DialogTrigger,
 } from './ui/dialog'
 
-export function DeletePopup({ onDelete }: { onDelete: () => Promise<void> }) {
+export const DeleteExpensePopup = ({ expense }: { expense: APIExpense }) => {
+  const router = useRouter()
+  const activeUser = useActiveUser(expense.groupId)
+
+  async function onDelete() {
+    await deleteExpense(expense.id, activeUser)
+    router.push(`/groups/${expense.groupId}/expenses`)
+    router.refresh()
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -23,10 +34,9 @@ export function DeletePopup({ onDelete }: { onDelete: () => Promise<void> }) {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle>Delete this expense?</DialogTitle>
+        <DialogTitle>Delete expense</DialogTitle>
         <DialogDescription>
-          Do you really want to delete this expense? This action is
-          irreversible.
+          Do you really want to delete this expense?
         </DialogDescription>
         <DialogFooter>
           <AsyncButton

@@ -1,11 +1,6 @@
 import { cached } from '@/app/cached-functions'
 import { ExpenseForm } from '@/components/expense-form'
-import {
-  createExpense,
-  deleteExpense,
-  getExpense,
-  updateExpense,
-} from '@/lib/api'
+import { createExpense, getExpense, updateExpense } from '@/lib/api'
 import { getRuntimeFeatureFlags } from '@/lib/featureFlags'
 import { expenseFormSchema } from '@/lib/schemas'
 import { Metadata } from 'next'
@@ -44,12 +39,6 @@ export default async function EditExpensePage({
     redirect(`/groups/${groupId}`)
   }
 
-  async function deleteExpenseAction(participantId: string | null) {
-    'use server'
-    await deleteExpense(expenseId, participantId)
-    redirect(`/groups/${groupId}`)
-  }
-
   return (
     <Suspense>
       <ExpenseForm
@@ -57,7 +46,6 @@ export default async function EditExpensePage({
         expense={expense}
         categories={categories}
         onSubmit={updateOrCreateAction}
-        onDelete={deleteExpenseAction}
         runtimeFeatureFlags={await getRuntimeFeatureFlags()}
       />
     </Suspense>

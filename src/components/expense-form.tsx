@@ -42,7 +42,6 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { match } from 'ts-pattern'
-import { DeletePopup } from './delete-popup'
 import { extractCategoryFromTitle } from './expense-form-actions'
 import { RouterButton } from './router-button'
 import { Textarea } from './ui/textarea'
@@ -56,7 +55,6 @@ export type Props = {
     values: ExpenseFormValues,
     participantId: string | null,
   ) => Promise<void>
-  onDelete?: (participantId: string | null) => Promise<void>
   runtimeFeatureFlags: RuntimeFeatureFlags
 }
 
@@ -84,11 +82,11 @@ export function ExpenseForm({
   expense,
   categories,
   onSubmit,
-  onDelete,
   runtimeFeatureFlags,
 }: Props) {
   const isCreate = expense === undefined
-  const [saveAsNew, setSaveAsNew] = useState(false)
+  const isCurrentExpense = isCreate || expense.expenseState === 'CURRENT'
+  const [saveAsNew, setSaveAsNew] = useState(!isCurrentExpense)
   const s_save = saveAsNew ? 'Save as New' : 'Save'
 
   const activeUser = useActiveUser(group.id)
@@ -727,7 +725,7 @@ export function ExpenseForm({
               <Save className="w-4 h-4 mr-2" />
               Create
             </SubmitButton>
-          ) : (
+          ) : isCurrentExpense ? (
             <div className="flex">
               <SubmitButton
                 className="mr-0 pl-3 pr-1 rounded-r-none"
@@ -757,9 +755,11 @@ export function ExpenseForm({
                 </SelectContent>
               </Select>
             </div>
-          )}
-          {!isCreate && onDelete && (
-            <DeletePopup onDelete={() => onDelete(activeUser)}></DeletePopup>
+          ) : (
+            <SubmitButton loadingContent="Saving…">
+              <Save className="w-4 h-4 mr-2" />
+              Save as New
+            </SubmitButton>
           )}
           <RouterButton variant="ghost" back>
             Cancel

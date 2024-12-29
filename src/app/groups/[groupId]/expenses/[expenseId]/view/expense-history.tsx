@@ -4,6 +4,7 @@ import { ExpenseList } from '@/app/groups/expense-list'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
 import { APIExpense, APIGroup } from '@/lib/api'
+import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
 export function ExpenseHistory({
@@ -15,7 +16,10 @@ export function ExpenseHistory({
   expense: APIExpense
   history: APIExpense[]
 }) {
-  const [showHistory, setShowHistory] = useState(false)
+  const searchParams = useSearchParams()
+  const [showHistory, setShowHistory] = useState(
+    searchParams.get('showHistory') === '1',
+  )
 
   return (
     <Collapsible className="group" open={showHistory}>
@@ -35,7 +39,7 @@ export function ExpenseHistory({
           group={group}
           preloadedExpenses={history}
           expenseCount={history.length}
-          style="history"
+          listType="history"
           selectedExpenseId={expense.id}
         />
       </CollapsibleContent>

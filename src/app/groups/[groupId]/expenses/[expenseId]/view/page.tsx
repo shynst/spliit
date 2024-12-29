@@ -1,9 +1,16 @@
 import { cached } from '@/app/cached-functions'
 import { CategoryExpenseIcon } from '@/components/category-icon'
+import { DeleteExpensePopup } from '@/components/delete-expense-popup'
 import { RouterButton } from '@/components/router-button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { APIExpense, APIGroup, getExpense } from '@/lib/api'
-import { cn, formatCurrency, getPaymentString } from '@/lib/utils'
+import {
+  cn,
+  formatCreateDate,
+  formatCurrency,
+  formatExpenseDate,
+  getPaymentString,
+} from '@/lib/utils'
 import { Edit } from 'lucide-react'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -45,6 +52,8 @@ function ViewExpense({
       ? 'Refund'
       : eType[0] + eType.slice(1).toLowerCase()
 
+  const isCurrentExpense = expense.expenseState === 'CURRENT'
+
   return (
     <div>
       <Card className="max-sm:mb-0">
@@ -55,6 +64,16 @@ function ViewExpense({
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-2 sm:gap-6">
+          <Item>
+            <ItemLabel>ID</ItemLabel>
+            <ItemContent>{expense.id.substring(0, 8)}</ItemContent>
+          </Item>
+
+          <Item>
+            <ItemLabel>State</ItemLabel>
+            <ItemContent>{expense.expenseState}</ItemContent>
+          </Item>
+
           <Item>
             <ItemLabel>Type</ItemLabel>
             <ItemContent>{s_transaction}</ItemContent>
@@ -68,7 +87,15 @@ function ViewExpense({
           <Item>
             <ItemLabel>Date</ItemLabel>
             <ItemContent className="date-base">
-              {formatDate(expense.expenseDate)}
+              {formatExpenseDate(expense.expenseDate, { withYear: true })}
+            </ItemContent>
+          </Item>
+
+          <Item>
+            <ItemLabel>Created By</ItemLabel>
+            <ItemContent className="date-base">
+              {(expense.createdBy?.name || 'Someone') + ' at '}
+              {formatCreateDate(expense.createdAt)}
             </ItemContent>
           </Item>
 
@@ -94,20 +121,23 @@ function ViewExpense({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Change Log</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 pt-2 pb-4 sm:p-0 sm:pb-6 flex flex-col gap-4">
-          <ExpenseHistory group={group} expense={expense} history={history} />
-        </CardContent>
-      </Card>
+      {history.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Change Log</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 pt-2 pb-4 sm:p-0 sm:pb-6 flex flex-col gap-4">
+            <ExpenseHistory group={group} expense={expense} history={history} />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex mt-4 gap-2">
         <RouterButton replace="edit">
           <Edit className="w-4 h-4 mr-2" />
-          Edit
+          {'Edit' + (isCurrentExpense ? '' : ' as New')}
         </RouterButton>
+        {isCurrentExpense && <DeleteExpensePopup expense={expense} />}
         <RouterButton variant="ghost" back>
           Close
         </RouterButton>
@@ -136,8 +166,3 @@ const ItemLabel = ({ children, className }: ItemProps) => (
 const ItemContent = ({ children, className }: ItemProps) => (
   <div className={cn('block sm:inline text-base', className)}>{children}</div>
 )
-
-function formatDate(date?: Date) {
-  if (!date || isNaN(date as any)) date = new Date()
-  return date.toISOString().substring(0, 10)
-}

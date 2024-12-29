@@ -24,8 +24,11 @@ const timeFormatter = new Intl.DateTimeFormat('en-UK', {
   minute: '2-digit',
 })
 
-export function formatExpenseDate(date: Date) {
-  return dayFormatter.format(date)
+export function formatExpenseDate(date: Date, options?: { withYear: boolean }) {
+  const year = date.getFullYear()
+  const thisYear = !options?.withYear || new Date().getFullYear() === year
+
+  return dayFormatter.format(date) + (thisYear ? '' : ', ' + year)
 }
 
 export function formatCreateDate(date: Date) {
@@ -39,7 +42,7 @@ export function formatCreateDate(date: Date) {
 
   if (today) return timeFormatter.format(date)
 
-  return dayFormatter.format(date) + (thisYear ? '' : ' ' + year)
+  return dayFormatter.format(date) + (thisYear ? '' : ', ' + year)
 }
 
 export function formatExpenseGroupDate(date: Date) {

@@ -8,7 +8,6 @@ import {
   getPaymentString,
 } from '@/lib/utils'
 import { ChevronRight, Sparkles } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 
 type Props = {
@@ -17,6 +16,7 @@ type Props = {
   selected: boolean
   activeUserId: string | null
   numMembers: number
+  onClick: () => void
 }
 
 const getAmount = (currency: string, expense: APIExpense | null) => {
@@ -54,9 +54,8 @@ export function ExpenseHistoryCard({
   selected,
   activeUserId,
   numMembers,
+  onClick,
 }: Props) {
-  const router = useRouter()
-
   const prevExp = expense.prevVersion ?? null
   const action = prevExp
     ? expense.expenseState === 'DELETED'
@@ -66,8 +65,9 @@ export function ExpenseHistoryCard({
   const currExp = action === 'deleted' ? null : expense
   const selectable = action !== 'deleted' && !selected
 
-  const amount = getAmount(group.currency, currExp)
-  const amountPrev = getAmount(group.currency, prevExp)
+  const currency = group.currency
+  const amount = getAmount(currency, currExp)
+  const amountPrev = getAmount(currency, prevExp)
 
   const paymentString = useMemo(
     () => currExp && getPaymentString(activeUserId, currExp, numMembers),
@@ -97,15 +97,13 @@ export function ExpenseHistoryCard({
   const notes = currExp?.notes ?? null
   const prevNotes = prevExp?.notes ?? null
   const notesAction =
-    notes !== prevNotes
+    prevExp && notes !== prevNotes
       ? !prevNotes
         ? 'Notes added'
         : !notes
         ? 'Notes removed'
         : 'Notes changed'
       : null
-
-  const editLink = `/groups/${group.id}/expenses/${expense.id}/view`
 
   return (
     <div
@@ -114,7 +112,7 @@ export function ExpenseHistoryCard({
         selectable && 'cursor-pointer hover:bg-accent',
         selected && 'border border-primary',
       ])}
-      onClick={() => selectable && router.push(editLink)}
+      onClick={() => selectable && onClick()}
     >
       <div className="relative">
         <CategoryExpenseIcon

@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { APIExpense, APIGroup, getExpenseList } from '@/lib/api'
 import { formatExpenseGroupDate, normalizeString } from '@/lib/utils'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 
@@ -17,7 +17,7 @@ type Props = {
   group: APIGroup
   preloadedExpenses: APIExpense[]
   expenseCount: number
-  style: 'expenses' | 'history'
+  listType: 'expenses' | 'history'
   selectedExpenseId?: string
 }
 
@@ -37,11 +37,13 @@ export function ExpenseList({
   group,
   preloadedExpenses,
   expenseCount,
-  style,
+  listType,
   selectedExpenseId,
 }: Props) {
+  const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
-  const includeHistory = style !== 'expenses'
+  const includeHistory = listType !== 'expenses'
   const showSearchBar = !selectedExpenseId
   const paramViewAll = !includeHistory || searchParams.get('v') === 'all'
 
@@ -64,27 +66,23 @@ export function ExpenseList({
   useEffect(() => {
     if (includeHistory) {
       const sp = new URLSearchParams(searchParams)
-      if (viewAllEvents) sp.set('v', 'all')
+      if (viewAllEvents && showSearchBar) sp.set('v', 'all')
       else sp.delete('v')
       const query = sp.size > 0 ? '?' + sp.toString() : ''
 
       history.replaceState(null, '', window.location.pathname + query)
     }
-  }, [includeHistory, searchParams, viewAllEvents])
+  }, [includeHistory, searchParams, showSearchBar, viewAllEvents])
 
   useEffect(() => {
     let userId = null as string | null
     const newGroupUser = localStorage.getItem('newGroup-activeUser')
-    const newUser = localStorage.getItem(`${groupId}-newUser`)
-    if (newGroupUser || newUser) {
+    if (newGroupUser) {
       localStorage.removeItem('newGroup-activeUser')
-      localStorage.removeItem(`${groupId}-newUser`)
       if (newGroupUser === 'None') {
         localStorage.setItem(`${groupId}-activeUser`, 'None')
       } else {
-        userId =
-          participants.find((p) => p.name === (newGroupUser || newUser))?.id ||
-          null
+        userId = participants.find((p) => p.name === newGroupUser)?.id || null
         if (userId) {
           localStorage.setItem(`${groupId}-activeUser`, userId)
         }
@@ -137,6 +135,14 @@ export function ExpenseList({
     [expenses, includeHistory],
   )
 
+  const onExpenseClick = (expenseId: string) => {
+    const viewUrl = `/groups/${groupId}/expenses/${expenseId}/view`
+    const rExp = new RegExp(`/groups/${groupId}/expenses/[^/]+/view/?$`)
+    pathname.match(rExp)
+      ? router.replace(viewUrl + '?showHistory=1')
+      : router.push(viewUrl)
+  }
+
   return expenses.length > 0 ? (
     <>
       {showSearchBar && (
@@ -183,6 +189,7 @@ export function ExpenseList({
                 group,
                 activeUserId,
                 numMembers: participants.length,
+                onClick: onExpenseClick.bind(null, expense.id),
               }
               return includeHistory ? (
                 <ExpenseHistoryCard

@@ -99,7 +99,7 @@ async function Expenses({ group, includeHistory }: Props) {
       group={group}
       preloadedExpenses={expenses}
       expenseCount={expenseCount}
-      style={includeHistory ? 'history' : 'expenses'}
+      listType={includeHistory ? 'history' : 'expenses'}
     />
   )
 }

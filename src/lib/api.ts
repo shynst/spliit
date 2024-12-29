@@ -298,11 +298,13 @@ export async function getExpense(
 
   try {
     await prisma.$transaction(async (tx) => {
+      const include = options?.includeHistory
+        ? { ...expenseIncludeParams, createdBy: { select: { name: true } } }
+        : expenseIncludeParams
+
       const get = (key: 'id' | 'prevVersionId', id: string) =>
-        tx.expense.findUnique({
-          where: { [key]: id } as any,
-          include: expenseIncludeParams,
-        })
+        tx.expense.findUnique({ where: { [key]: id } as any, include })
+
       expense = await get('id', expenseId)
 
       if (expense && options?.includeHistory) {
