@@ -1,30 +1,27 @@
 'use client'
 import { cached } from '@/app/cached-functions'
-import { APIExpense, APIGroup } from '@/lib/api'
+import { APIExpenseBalance, APIGroup } from '@/lib/api'
 import {
   getTotalActiveUserPaidFor,
   getTotalActiveUserShare,
 } from '@/lib/balances'
 import { cn, formatCurrency } from '@/lib/utils'
 
-export function Totals({
-  group,
-  expenses,
-  totalGroupSpendings,
-}: {
+type Props = {
   group: APIGroup
-  expenses: APIExpense[]
-  totalGroupSpendings: number
-}) {
-  const activeUser = cached.getActiveUser(group.id)
+  expenses: APIExpenseBalance[]
+  currency: string
+  totalSpendings: number
+}
 
-  const currency = 'TODO'
+export function Totals({ group, expenses, currency, totalSpendings }: Props) {
+  const activeUser = cached.getActiveUser(group.id)
 
   return (
     <>
       <StatItem
-        label="Total group $balance"
-        amount={totalGroupSpendings}
+        label="Group $balance"
+        amount={totalSpendings}
         currency={currency}
         colored={false}
       />
@@ -32,13 +29,13 @@ export function Totals({
       {activeUser && activeUser !== 'None' && (
         <>
           <StatItem
-            label="Your total $balance"
+            label="Your $balance"
             amount={getTotalActiveUserPaidFor(activeUser, expenses)}
             currency={currency}
             colored={true}
           />
           <StatItem
-            label="Your total share"
+            label="Your share"
             amount={getTotalActiveUserShare(activeUser, expenses)}
             currency={currency}
             colored={true}
@@ -49,22 +46,19 @@ export function Totals({
   )
 }
 
-function StatItem({
-  label,
-  amount,
-  currency,
-  colored,
-}: {
+type StatProps = {
   label: string
   amount: number
   currency: string
   colored: boolean
-}) {
+}
+
+function StatItem({ label, amount, currency, colored }: StatProps) {
   const balance = amount < 0 ? 'earnings' : 'spendings'
   label = label.replaceAll('$balance', balance)
 
   return (
-    <div className="text-sm border-t p-4 sm:p-6 flex justify-between">
+    <div className="text-sm pb-4 flex justify-between">
       <div>{label}</div>
       <div
         className={cn(

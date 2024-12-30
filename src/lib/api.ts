@@ -12,6 +12,10 @@ export type APIExpense = Awaited<ReturnType<typeof createExpense>> & {
   nextVersion?: APIExpense | null | undefined
   createdBy?: { name: string } | null | undefined
 }
+export type APIExpenseBalance = Pick<
+  Awaited<ReturnType<typeof createExpense>>,
+  'amount' | 'paidBy' | 'paidFor' | 'splitMode' | 'expenseType'
+>
 
 export { randomId }
 
@@ -107,6 +111,17 @@ export async function getGroup(groupId: string): Promise<APIGroup | null> {
     where: { id: groupId },
     include: groupIncludeParams,
   })
+}
+
+export async function getUsedCurrencies(groupId: string): Promise<string[]> {
+  return (
+    await prisma.expense.findMany({
+      select: { currency: true },
+      distinct: 'currency',
+      where: { groupId, expenseState: 'CURRENT' },
+      orderBy: { currency: 'asc' },
+    })
+  ).map((e) => e.currency)
 }
 
 async function getCreateExpenseParams(
@@ -277,6 +292,40 @@ export async function getExpenseList(
     skip: offset,
     take: length,
   })
+}
+
+export async function getExpenseListByCurrency(groupId: string) {
+  const select = {
+    amount: true,
+    paidBy: { select: { id: true, name: true } },
+    paidFor: {
+      select: {
+        participant: { select: { id: true, name: true } },
+        shares: true,
+      },
+    },
+    splitMode: true,
+    expenseType: true,
+  }
+  const orderBy = [
+    { expenseDate: 'desc' } as const,
+    { createdAt: 'desc' } as const,
+  ]
+
+  const result = new Map<string, APIExpenseBalance[]>()
+
+  for (const currency of await getUsedCurrencies(groupId)) {
+    result.set(
+      currency,
+      await prisma.expense.findMany({
+        select,
+        where: { groupId, currency, expenseState: 'CURRENT' },
+        orderBy,
+      }),
+    )
+  }
+
+  return result
 }
 
 export async function getExpenseCount(

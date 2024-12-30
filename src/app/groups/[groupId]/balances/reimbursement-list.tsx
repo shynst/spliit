@@ -6,43 +6,40 @@ import Link from 'next/link'
 
 type Props = {
   group: APIGroup
+  currency: string
   reimbursements: Reimbursement[]
 }
 
-export function ReimbursementList({ group, reimbursements }: Props) {
-  if (reimbursements.length === 0) {
-    return (
-      <p className="px-6 text-sm pb-6">
-        It looks like your group doesn’t need any reimbursement 😁
-      </p>
-    )
-  }
-
-  const currency = 'TODO'
-
-  const getParticipant = (id: string) =>
-    group.participants.find((p) => p.id === id)
+export function ReimbursementList({ group, currency, reimbursements }: Props) {
+  const getParticipantName = (id: string) =>
+    group.participants.find((p) => p.id === id)?.name || 'Someone'
 
   const uriCurrency = encodeURIComponent(currency)
 
   return (
     <div className="text-sm">
       {reimbursements.map((reimbursement, index) => (
-        <div className="border-t p-4 sm:p-6 flex justify-between" key={index}>
-          <div className="flex flex-col gap-1 items-start sm:flex-row sm:items-baseline sm:gap-4">
-            <div>
-              <strong>{getParticipant(reimbursement.from)?.name}</strong> owes{' '}
-              <strong>{getParticipant(reimbursement.to)?.name}</strong>
-            </div>
-            <Button variant="link" asChild className="-mx-4 -my-3">
-              <Link
-                href={`/groups/${group.id}/expenses/create?reimbursement=yes&from=${reimbursement.from}&to=${reimbursement.to}&amount=${reimbursement.amount}&currency=${uriCurrency}`}
-              >
-                Mark as paid
-              </Link>
-            </Button>
+        <div
+          className="pb-4 grid grid-cols-[1fr_max-content_max-content]"
+          key={index}
+        >
+          <div>
+            <strong>{getParticipantName(reimbursement.from)}</strong> owes{' '}
+            <strong>{getParticipantName(reimbursement.to)}</strong>
           </div>
           <div>{formatCurrency(currency, reimbursement.amount)}</div>
+
+          <Button
+            variant="link"
+            asChild
+            className="ml-4 p-0 h-[20px] justify-self-end"
+          >
+            <Link
+              href={`/groups/${group.id}/expenses/create?reimbursement=yes&from=${reimbursement.from}&to=${reimbursement.to}&amount=${reimbursement.amount}&currency=${uriCurrency}`}
+            >
+              Mark as paid
+            </Link>
+          </Button>
         </div>
       ))}
     </div>

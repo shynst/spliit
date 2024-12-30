@@ -1,4 +1,4 @@
-import { APIExpense } from '@/lib/api'
+import { APIExpenseBalance } from '@/lib/api'
 import { Participant } from '@prisma/client'
 import { match } from 'ts-pattern'
 
@@ -13,18 +13,18 @@ export type Reimbursement = {
   amount: number
 }
 
-function getBalance(expense: APIExpense) {
+function getBalance(expense: APIExpenseBalance) {
   const t = expense.expenseType
   return t === 'REIMBURSEMENT' ? 0 : (t === 'INCOME' ? -1 : 1) * expense.amount
 }
 
-export function getTotalGroupSpending(expenses: APIExpense[]): number {
+export function getTotalGroupSpending(expenses: APIExpenseBalance[]): number {
   return expenses.reduce((total, expense) => total + getBalance(expense), 0)
 }
 
 export function getTotalActiveUserPaidFor(
   activeUserId: string | null,
-  expenses: APIExpense[],
+  expenses: APIExpenseBalance[],
 ): number {
   return expenses.reduce(
     (total, expense) =>
@@ -35,7 +35,7 @@ export function getTotalActiveUserPaidFor(
 
 export function getTotalActiveUserShare(
   activeUserId: string | null,
-  expenses: APIExpense[],
+  expenses: APIExpenseBalance[],
 ): number {
   let total = 0
 
@@ -81,7 +81,7 @@ export function getTotalActiveUserShare(
   return parseFloat(total.toFixed(2))
 }
 
-export function getBalances(expenses: APIExpense[]): Balances {
+export function getBalances(expenses: APIExpenseBalance[]): Balances {
   const balances: Balances = {}
 
   for (const expense of expenses) {

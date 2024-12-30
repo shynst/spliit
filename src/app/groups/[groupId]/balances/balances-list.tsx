@@ -4,15 +4,14 @@ import { cn, formatCurrency } from '@/lib/utils'
 
 type Props = {
   group: APIGroup
+  currency: string
   balances: Balances
 }
 
-export function BalancesList({ group, balances }: Props) {
+export function BalancesList({ group, currency, balances }: Props) {
   const maxBalance = Math.max(
     ...Object.values(balances).map((b) => Math.abs(b.total)),
   )
-
-  const currency = 'TODO'
 
   return (
     <div className="text-sm">

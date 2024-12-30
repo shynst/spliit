@@ -117,7 +117,9 @@ export function ExpenseForm({
           expenseDate: searchParams.get('date')
             ? new Date(searchParams.get('date') as string)
             : new Date(),
-          amount: (Number(searchParams.get('amount')) || 0) / 100,
+          amount: String(
+            (Number(searchParams.get('amount')) || 0) / 100,
+          ) as unknown as number,
           currency:
             searchParams.get('currency') ||
             (activeUser &&
