@@ -180,7 +180,6 @@ export function ExpenseList({
           for (const expense of exp) {
             const info = ExpenseHistoryCard.getHistoryInfo({
               expense,
-              group,
               activeUserId,
               numMembers,
             })

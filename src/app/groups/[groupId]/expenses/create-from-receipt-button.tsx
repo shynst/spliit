@@ -196,7 +196,7 @@ export function CreateFromReceiptButton({ group, categories }: Props) {
                   receiptInfo.amount ? (
                     <>
                       {formatCurrency(
-                        group.currency,
+                        '€',
                         Math.round(100 * receiptInfo.amount),
                       )}
                     </>

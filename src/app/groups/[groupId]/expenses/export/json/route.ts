@@ -11,13 +11,13 @@ export async function GET(
     select: {
       id: true,
       name: true,
-      currency: true,
       expenses: {
         select: {
           expenseDate: true,
           title: true,
           category: { select: { grouping: true, name: true } },
           amount: true,
+          currency: true,
           paidById: true,
           paidFor: { select: { participantId: true, shares: true } },
           expenseType: true,

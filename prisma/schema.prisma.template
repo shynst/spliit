@@ -14,7 +14,6 @@ datasource db {
 model Group {
   id           String        @id
   name         String
-  currency     String        @default("$")
   participants Participant[]
   expenses     Expense[]
   createdAt    DateTime      @default(now())
@@ -46,6 +45,7 @@ model Expense {
   category      Category?         @relation(fields: [categoryId], references: [id])
   categoryId    Int               @default(0)
   amount        Int
+  currency      String            @default("$") @db.VarChar(5)
   paidBy        Participant       @relation("ExpensePayedBy", fields: [paidById], references: [id], onDelete: Cascade)
   paidById      String
   paidFor       ExpensePaidFor[]

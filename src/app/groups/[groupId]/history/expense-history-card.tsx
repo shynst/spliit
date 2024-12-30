@@ -1,6 +1,6 @@
 'use client'
 import { CategoryExpenseIcon } from '@/components/category-icon'
-import { APIExpense, APIGroup } from '@/lib/api'
+import { APIExpense } from '@/lib/api'
 import {
   cn,
   formatCreateDate,
@@ -9,10 +9,10 @@ import {
 } from '@/lib/utils'
 import { ChevronRight, Sparkles } from 'lucide-react'
 
-const getAmount = (currency: string, expense: APIExpense | null) =>
+const getAmount = (expense: APIExpense | undefined) =>
   expense &&
   formatCurrency(
-    currency,
+    expense.currency,
     (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount,
   )
 
@@ -42,32 +42,29 @@ function ChangeSpan({ info }: { info: ReturnType<typeof getChangeInfo> }) {
 
 type HistoryInfoProps = {
   expense: APIExpense
-  group: APIGroup
   activeUserId: string | null
   numMembers: number
 }
 
 const getHistoryInfo = ({
   expense,
-  group,
   activeUserId,
   numMembers,
 }: HistoryInfoProps) => {
-  const prevExp = expense.prevVersion ?? null
+  const prevExp = expense.prevVersion ?? undefined
   const action = prevExp
     ? expense.expenseState === 'DELETED'
       ? 'deleted'
       : 'updated'
     : 'created'
-  const currExp = action === 'deleted' ? null : expense
+  const currExp = action === 'deleted' ? undefined : expense
 
   const title = currExp?.title
   const prevTitle = prevExp?.title
   const titleChanged = prevTitle && prevTitle !== title
 
-  const currency = group.currency
-  const amount = getAmount(currency, currExp)
-  const prevAmount = getAmount(currency, prevExp)
+  const amount = getAmount(currExp)
+  const prevAmount = getAmount(prevExp)
   const amountChanged = prevAmount && prevAmount !== amount
 
   const payment = currExp && getPaymentString(activeUserId, currExp, numMembers)

@@ -15,6 +15,13 @@ type Props = RouterActions & ButtonProps
 export function RouterButton({ children, ...props }: Props) {
   const router = useRouter()
 
+  const btnProps = { ...props }
+  delete btnProps.push
+  delete btnProps.replace
+  delete btnProps.back
+  delete btnProps.forward
+  delete btnProps.refresh
+
   return (
     <Button
       onClick={() => {
@@ -24,7 +31,7 @@ export function RouterButton({ children, ...props }: Props) {
         else if (props.forward) router.forward()
         else if (props.refresh) router.refresh()
       }}
-      {...props}
+      {...btnProps}
     >
       {children}
     </Button>

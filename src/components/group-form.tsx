@@ -62,12 +62,10 @@ export function GroupForm({
     defaultValues: group
       ? {
           name: group.name,
-          currency: group.currency,
           participants: group.participants,
         }
       : {
           name: '',
-          currency: '',
           participants: [
             { name: 'Stefan' },
             { name: 'Johanna' },
@@ -117,7 +115,7 @@ export function GroupForm({
           <CardHeader>
             <CardTitle>Group information</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1">
             <FormField
               control={form.control}
               name="name"
@@ -133,28 +131,6 @@ export function GroupForm({
                   </FormControl>
                   <FormDescription>
                     Enter a name for your group.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Currency symbol</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="text-base"
-                      placeholder="$, €, £…"
-                      max={5}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    We’ll use it to display amounts.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

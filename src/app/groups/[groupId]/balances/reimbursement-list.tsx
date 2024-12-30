@@ -9,7 +9,7 @@ type Props = {
   reimbursements: Reimbursement[]
 }
 
-export function ReimbursementList({ reimbursements, group }: Props) {
+export function ReimbursementList({ group, reimbursements }: Props) {
   if (reimbursements.length === 0) {
     return (
       <p className="px-6 text-sm pb-6">
@@ -17,6 +17,8 @@ export function ReimbursementList({ reimbursements, group }: Props) {
       </p>
     )
   }
+
+  const currency = 'TODO'
 
   const getParticipant = (id: string) =>
     group.participants.find((p) => p.id === id)
@@ -37,7 +39,7 @@ export function ReimbursementList({ reimbursements, group }: Props) {
               </Link>
             </Button>
           </div>
-          <div>{formatCurrency(group.currency, reimbursement.amount)}</div>
+          <div>{formatCurrency(currency, reimbursement.amount)}</div>
         </div>
       ))}
     </div>

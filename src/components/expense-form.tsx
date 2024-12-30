@@ -104,6 +104,7 @@ export function ExpenseForm({
           title: expense.title,
           expenseDate: expense.expenseDate ?? new Date(),
           amount: String(expense.amount / 100) as unknown as number, // hack
+          currency: expense.currency,
           category: expense.categoryId,
           paidBy: expense.paidById,
           paidFor: expense.paidFor.map(({ participant, shares }) => ({
@@ -115,34 +116,18 @@ export function ExpenseForm({
           documents: [],
           notes: expense.notes || undefined,
         }
-      : searchParams.get('reimbursement')
-      ? {
-          title: 'Reimbursement',
-          expenseDate: new Date(),
-          amount: String(
-            (Number(searchParams.get('amount')) || 0) / 100,
-          ) as unknown as number, // hack
-          category: 1, // category with Id 1 is Payment
-          paidBy: searchParams.get('from') ?? undefined,
-          paidFor: [
-            searchParams.get('to')
-              ? {
-                  participant: searchParams.get('to')!,
-                  shares: '1' as unknown as number,
-                }
-              : undefined,
-          ],
-          expenseType: 'REIMBURSEMENT',
-          splitMode: 'EVENLY',
-          documents: [],
-          notes: undefined,
-        }
       : {
           title: searchParams.get('title') ?? '',
           expenseDate: searchParams.get('date')
             ? new Date(searchParams.get('date') as string)
             : new Date(),
           amount: (searchParams.get('amount') || 0) as unknown as number, // hack,
+          currency:
+            searchParams.get('currency') ||
+            (activeUser &&
+              activeUser !== 'None' &&
+              localStorage?.getItem(activeUser + '-lastCurrency')) ||
+            '€',
           category: searchParams.get('categoryId')
             ? Number(searchParams.get('categoryId'))
             : 0, // category with Id 0 is General
@@ -228,9 +213,12 @@ export function ExpenseForm({
     <Form {...form}>
       <form
         ref={scrollRef}
-        onSubmit={form.handleSubmit((values) =>
-          onSubmit(isCreate || saveAsNew, values, activeUser),
-        )}
+        onSubmit={form.handleSubmit((values) => {
+          if (activeUser && activeUser !== 'None') {
+            localStorage?.setItem(activeUser + '-lastCurrency', values.currency)
+          }
+          onSubmit(isCreate || saveAsNew, values, activeUser)
+        })}
       >
         <Card className="max-sm:mb-0">
           <CardHeader className="pb-3 sm:pb-6 flex flex-row justify-between">
@@ -304,41 +292,61 @@ export function ExpenseForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field: { onChange, ...field } }) => (
-                <FormItem className="order-3">
-                  <FormLabel>Amount in {group.currency}</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="text-base min-w-[80px]"
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="0.00"
-                      onChange={(e) =>
-                        onChange(enforceCurrencyPattern(e.target.value))
-                      }
-                      onFocus={(e) => {
-                        {
-                          // we're adding a small delay to get around safaris issue with onMouseUp deselecting things again
-                          let target = e.currentTarget
-                          setTimeout(function () {
-                            target.select()
-                          }, 1)
+            <div className="order-3 flex">
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field: { onChange, ...field } }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Amount</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="text-base min-w-[80px]"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        onChange={(e) =>
+                          onChange(enforceCurrencyPattern(e.target.value))
                         }
-                      }}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription fieldName={field.name}>
-                    Enter the amount
-                    <span className="max-sm:hidden">{' ' + s_paid}</span>.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                        onFocus={(e) => {
+                          {
+                            // we're adding a small delay to get around safaris issue with onMouseUp deselecting things again
+                            let target = e.currentTarget
+                            setTimeout(function () {
+                              target.select()
+                            }, 1)
+                          }
+                        }}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription fieldName={field.name}>
+                      Enter the amount
+                      <span className="max-sm:hidden">{' ' + s_paid}</span>.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>&nbsp;</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="text-base w-[50px] p-1 text-center"
+                        placeholder="€, $…"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -523,7 +531,7 @@ export function ExpenseForm({
 
                             return (
                               <div
-                                data-id={`${id}/${splitMode}/${group.currency}`}
+                                data-id={`${id}/${splitMode}/${formValues.currency}`}
                                 className="flex items-center border-t last-of-type:border-b last-of-type:!mb-1 -mx-6 px-6 py-3"
                               >
                                 <FormItem className="flex-1 flex flex-row items-start space-x-3 space-y-0">
@@ -550,7 +558,7 @@ export function ExpenseForm({
                                             ))
                                             .with('BY_PERCENTAGE', () => <>%</>)
                                             .with('BY_AMOUNT', () => (
-                                              <>{group.currency}</>
+                                              <>{formValues.currency}</>
                                             ))
                                             .otherwise(() => (
                                               <></>

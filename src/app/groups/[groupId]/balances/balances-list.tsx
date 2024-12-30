@@ -12,6 +12,8 @@ export function BalancesList({ group, balances }: Props) {
     ...Object.values(balances).map((b) => Math.abs(b.total)),
   )
 
+  const currency = 'TODO'
+
   return (
     <div className="text-sm">
       {group.participants.map((participant) => {
@@ -27,7 +29,7 @@ export function BalancesList({ group, balances }: Props) {
             </div>
             <div className={cn('w-1/2 relative', isLeft || 'text-right')}>
               <div className="absolute inset-0 p-2 z-20">
-                {formatCurrency(group.currency, balance)}
+                {formatCurrency(currency, balance)}
               </div>
               {balance !== 0 && (
                 <div

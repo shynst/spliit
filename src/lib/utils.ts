@@ -89,7 +89,9 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 export function formatCurrency(currency: string, amount: number) {
   const sign = amount < 0 ? '-' : ''
   const formattedAmount = currencyFormatter.format(Math.abs(amount) / 100)
-  return sign + currency + formattedAmount
+  return currency.length > 1
+    ? sign + formattedAmount + ' ' + currency
+    : sign + currency + formattedAmount
 }
 
 export function formatFileSize(size: number) {

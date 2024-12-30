@@ -37,7 +37,6 @@ async function main() {
       const group: Prisma.GroupCreateInput = {
         id: groupRow.id,
         name: groupRow.name,
-        currency: groupRow.currency,
         createdAt: groupRow.created_at,
       }
 
@@ -76,6 +75,7 @@ async function main() {
         expenses.push({
           id,
           amount: Math.round(expenseRow.amount * 100),
+          currency: groupRow.currency,
           groupId: groupRow.id,
           title: expenseRow.description,
           categoryId: 1,

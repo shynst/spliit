@@ -7,10 +7,6 @@ export const groupFormSchema = z
       .string()
       .min(2, 'Enter at least two characters.')
       .max(50, 'Enter at most 50 characters.'),
-    currency: z
-      .string()
-      .min(1, 'Enter at least one character.')
-      .max(5, 'Enter at most five characters.'),
     participants: z
       .array(
         z.object({
@@ -67,6 +63,10 @@ export const expenseFormSchema = z
         (amount) => amount <= 10_000_000_00,
         'The amount must be lower than 10,000,000.',
       ),
+    currency: z
+      .string()
+      .min(1, 'Must not be empty.')
+      .max(5, 'Enter at most five characters.'),
     paidBy: z.string({ required_error: 'You must select a participant.' }),
     paidFor: z
       .array(

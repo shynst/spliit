@@ -36,7 +36,7 @@ export function ExpenseCard({
       : 0
   }, [activeUserId, expense])
 
-  const currency = group.currency
+  const currency = expense.currency
 
   return (
     <div

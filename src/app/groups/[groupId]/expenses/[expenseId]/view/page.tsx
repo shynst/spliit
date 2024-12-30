@@ -80,7 +80,7 @@ function ViewExpense({
           <Item>
             <ItemLabel>Amount</ItemLabel>
             <ItemContent className="min-w-[80px]">
-              {formatCurrency(group.currency, expense.amount)}
+              {formatCurrency(expense.currency, expense.amount)}
             </ItemContent>
           </Item>
 

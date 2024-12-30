@@ -18,6 +18,8 @@ export function Totals({
 }) {
   const activeUser = cached.getActiveUser(group.id)
 
+  const currency = 'TODO'
+
   return (
     <>
       <StatItem
