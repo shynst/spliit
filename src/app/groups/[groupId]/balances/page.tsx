@@ -14,8 +14,8 @@ import {
   getBalances,
   getPublicBalances,
   getSuggestedReimbursements,
+  getTotalGroupSpending,
 } from '@/lib/balances'
-import { getTotalGroupSpending } from '@/lib/totals'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 

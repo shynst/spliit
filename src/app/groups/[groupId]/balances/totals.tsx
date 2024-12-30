@@ -4,7 +4,7 @@ import { APIExpense, APIGroup } from '@/lib/api'
 import {
   getTotalActiveUserPaidFor,
   getTotalActiveUserShare,
-} from '@/lib/totals'
+} from '@/lib/balances'
 import { cn, formatCurrency } from '@/lib/utils'
 
 export function Totals({
