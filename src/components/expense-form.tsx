@@ -89,12 +89,8 @@ export function ExpenseForm({
   const [saveAsNew, setSaveAsNew] = useState(!isCurrentExpense)
   const s_save = saveAsNew ? 'Save as New' : 'Save'
 
-  const activeUser = cached.getActiveUser(group.id)
-
   const searchParams = useSearchParams()
-  const getSelectedPayer = (field?: { value: string }) =>
-    isCreate && activeUser && activeUser !== 'None' ? activeUser : field?.value
-
+  const activeUser = cached.getActiveUser(group.id)
   const members = group.participants
 
   const form = useForm<ExpenseFormValues>({
@@ -111,8 +107,8 @@ export function ExpenseForm({
             participant: participant.id,
             shares: String(shares / 100) as unknown as number,
           })),
-          splitMode: expense.splitMode,
           expenseType: expense.expenseType,
+          splitMode: expense.splitMode,
           documents: [],
           notes: expense.notes || undefined,
         }
@@ -121,7 +117,7 @@ export function ExpenseForm({
           expenseDate: searchParams.get('date')
             ? new Date(searchParams.get('date') as string)
             : new Date(),
-          amount: (searchParams.get('amount') || 0) as unknown as number, // hack,
+          amount: (Number(searchParams.get('amount')) || 0) / 100,
           currency:
             searchParams.get('currency') ||
             (activeUser &&
@@ -131,13 +127,21 @@ export function ExpenseForm({
           category: searchParams.get('categoryId')
             ? Number(searchParams.get('categoryId'))
             : 0, // category with Id 0 is General
-          // paid for all, split evenly
-          paidFor: members.map(({ id }) => ({
-            participant: id,
-            shares: '1' as unknown as number,
-          })),
-          paidBy: getSelectedPayer(),
-          expenseType: 'EXPENSE',
+          paidBy: searchParams.get('from') ?? activeUser ?? undefined,
+          paidFor: searchParams.get('to')
+            ? [
+                {
+                  participant: searchParams.get('to')!,
+                  shares: '1' as unknown as number,
+                },
+              ]
+            : members.map(({ id }) => ({
+                participant: id,
+                shares: '1' as unknown as number,
+              })),
+          expenseType: searchParams.get('reimbursement')
+            ? 'REIMBURSEMENT'
+            : 'EXPENSE',
           splitMode: 'EVENLY',
           documents: searchParams.get('imageUrl')
             ? [
@@ -416,7 +420,7 @@ export function ExpenseForm({
                   <FormLabel>{s_Paid} by</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={getSelectedPayer(field)}
+                    defaultValue={field?.value}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a participant" />

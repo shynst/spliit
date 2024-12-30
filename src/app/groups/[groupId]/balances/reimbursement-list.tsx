@@ -22,6 +22,9 @@ export function ReimbursementList({ group, reimbursements }: Props) {
 
   const getParticipant = (id: string) =>
     group.participants.find((p) => p.id === id)
+
+  const uriCurrency = encodeURIComponent(currency)
+
   return (
     <div className="text-sm">
       {reimbursements.map((reimbursement, index) => (
@@ -33,7 +36,7 @@ export function ReimbursementList({ group, reimbursements }: Props) {
             </div>
             <Button variant="link" asChild className="-mx-4 -my-3">
               <Link
-                href={`/groups/${group.id}/expenses/create?reimbursement=yes&from=${reimbursement.from}&to=${reimbursement.to}&amount=${reimbursement.amount}`}
+                href={`/groups/${group.id}/expenses/create?reimbursement=yes&from=${reimbursement.from}&to=${reimbursement.to}&amount=${reimbursement.amount}&currency=${uriCurrency}`}
               >
                 Mark as paid
               </Link>
