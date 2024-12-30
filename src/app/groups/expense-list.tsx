@@ -155,7 +155,7 @@ export function ExpenseList({
             onCheckedChange={(value) => setViewAllEvents(!!value)}
           />
           <div className="block text-sm font-normal">
-            View all events, including expense creation
+            View all events, including expense creation and minor updates
           </div>
         </div>
       )}
@@ -172,35 +172,56 @@ export function ExpenseList({
             return prevVersionId !== null && strFound
           })
         }
-        if (exp.length === 0) return null
 
-        return (
-          <div key={expGroup}>
-            <div
-              className={
-                'text-muted-foreground text-xs pl-4 sm:pl-6 py-1 font-semibold sticky top-12 sm:top-16 bg-white dark:bg-[#1b1917]'
-              }
-            >
-              {expGroup}
-            </div>
-            {exp.map((expense) => {
-              const args = {
-                expense,
-                group,
-                activeUserId,
-                numMembers: participants.length,
-                onClick: onExpenseClick.bind(null, expense.id),
-              }
-              return includeHistory ? (
+        const numMembers = participants.length
+
+        let ExpCards: JSX.Element[] = []
+        if (includeHistory) {
+          for (const expense of exp) {
+            const info = ExpenseHistoryCard.getHistoryInfo({
+              expense,
+              group,
+              activeUserId,
+              numMembers,
+            })
+            if (viewAllEvents || ExpenseHistoryCard.isMayorChange(info)) {
+              ExpCards.push(
                 <ExpenseHistoryCard
                   key={expense.id}
-                  {...{ ...args, selected: selectedExpenseId === expense.id }}
-                />
-              ) : (
-                <ExpenseCard key={expense.id} {...args} />
+                  expense={expense}
+                  historyInfo={info}
+                  selected={selectedExpenseId === expense.id}
+                  onClick={onExpenseClick.bind(null, expense.id)}
+                />,
               )
-            })}
-          </div>
+            }
+          }
+        } else {
+          ExpCards = exp.map((expense) => (
+            <ExpenseCard
+              key={expense.id}
+              expense={expense}
+              group={group}
+              activeUserId={activeUserId}
+              numMembers={numMembers}
+              onClick={onExpenseClick.bind(null, expense.id)}
+            />
+          ))
+        }
+
+        return (
+          ExpCards.length > 0 && (
+            <div key={expGroup}>
+              <div
+                className={
+                  'text-muted-foreground text-xs pl-4 sm:pl-6 py-1 font-semibold sticky top-12 sm:top-16 bg-white dark:bg-[#1b1917]'
+                }
+              >
+                {expGroup}
+              </div>
+              {ExpCards}
+            </div>
+          )
         )
       })}
       {expenses.length < expenseCount &&

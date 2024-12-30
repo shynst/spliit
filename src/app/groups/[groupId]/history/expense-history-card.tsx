@@ -8,54 +8,51 @@ import {
   getPaymentString,
 } from '@/lib/utils'
 import { ChevronRight, Sparkles } from 'lucide-react'
-import { useMemo } from 'react'
 
-type Props = {
-  expense: APIExpense
-  group: APIGroup
-  selected: boolean
-  activeUserId: string | null
-  numMembers: number
-  onClick: () => void
-}
-
-const getAmount = (currency: string, expense: APIExpense | null) => {
-  return (
-    expense &&
-    formatCurrency(
-      currency,
-      (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount,
-    )
+const getAmount = (currency: string, expense: APIExpense | null) =>
+  expense &&
+  formatCurrency(
+    currency,
+    (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount,
   )
-}
 
-function ChangeSpan({
-  prev,
-  curr,
-}: {
-  prev: string | null | undefined
-  curr: string | null | undefined
-}) {
-  if (!prev || prev === curr) return curr
+const getChangeInfo = <T,>(changed: any, prev: T, current: T) => ({
+  changed: !!changed,
+  prev: prev || undefined,
+  curr: current || undefined,
+})
+
+function ChangeSpan({ info }: { info: ReturnType<typeof getChangeInfo> }) {
+  const { prev, curr } = info
+  if (!prev || prev === curr) return String(curr)
   return curr ? (
     <span>
-      <span className="text-red-600 font-normal line-through">{prev}</span>
+      <span className="text-red-600 font-normal line-through">
+        {String(prev)}
+      </span>
       {' → '}
-      <span className="text-green-600">{curr}</span>
+      <span className="text-green-600">{String(curr)}</span>
     </span>
   ) : (
-    <span className="text-red-600 font-normal line-through">{prev}</span>
+    <span className="text-red-600 font-normal line-through">
+      {String(prev)}
+    </span>
   )
 }
 
-export function ExpenseHistoryCard({
+type HistoryInfoProps = {
+  expense: APIExpense
+  group: APIGroup
+  activeUserId: string | null
+  numMembers: number
+}
+
+const getHistoryInfo = ({
   expense,
   group,
-  selected,
   activeUserId,
   numMembers,
-  onClick,
-}: Props) {
+}: HistoryInfoProps) => {
   const prevExp = expense.prevVersion ?? null
   const action = prevExp
     ? expense.expenseState === 'DELETED'
@@ -63,47 +60,81 @@ export function ExpenseHistoryCard({
       : 'updated'
     : 'created'
   const currExp = action === 'deleted' ? null : expense
-  const selectable = action !== 'deleted' && !selected
+
+  const title = currExp?.title
+  const prevTitle = prevExp?.title
+  const titleChanged = prevTitle && prevTitle !== title
 
   const currency = group.currency
   const amount = getAmount(currency, currExp)
-  const amountPrev = getAmount(currency, prevExp)
+  const prevAmount = getAmount(currency, prevExp)
+  const amountChanged = prevAmount && prevAmount !== amount
 
-  const paymentString = useMemo(
-    () => currExp && getPaymentString(activeUserId, currExp, numMembers),
-    [activeUserId, currExp, numMembers],
-  )
-  const prevPaymentString = useMemo(
-    () => prevExp && getPaymentString(activeUserId, prevExp, numMembers),
-    [activeUserId, prevExp, numMembers],
-  )
+  const payment = currExp && getPaymentString(activeUserId, currExp, numMembers)
+  const prevPay = prevExp && getPaymentString(activeUserId, prevExp, numMembers)
+  const payChanged = prevPay && prevPay !== payment
 
   const userName =
     expense.createdById === activeUserId
       ? 'You'
-      : expense.createdBy?.name ?? 'Someone'
+      : expense.createdBy?.name || 'Someone'
 
   const summary =
     formatCreateDate(expense.createdAt) + `: ${userName} ${action}`
 
-  const catChanged =
-    prevExp && currExp && prevExp.category?.id !== currExp.category?.id
+  const cat = currExp?.category?.id
+  const prevCat = prevExp?.category?.id
+  const catChanged = prevExp && currExp && prevCat !== cat
 
-  const dateChanged =
-    prevExp &&
-    currExp &&
-    prevExp.expenseDate.getDate() !== currExp.expenseDate.getDate()
+  const date = currExp?.expenseDate.getDate()
+  const prevDate = prevExp?.expenseDate.getDate()
+  const dateChanged = prevExp && currExp && prevDate !== date
 
-  const notes = currExp?.notes ?? null
-  const prevNotes = prevExp?.notes ?? null
-  const notesAction =
-    prevExp && notes !== prevNotes
-      ? !prevNotes
-        ? 'Notes added'
-        : !notes
-        ? 'Notes removed'
-        : 'Notes changed'
-      : null
+  const notes = currExp?.notes
+  const prevNotes = prevExp?.notes
+  const notesChanged = notes && notes !== prevNotes
+
+  return {
+    summary,
+    action,
+    title: getChangeInfo(titleChanged, prevTitle, title),
+    category: getChangeInfo(catChanged, prevCat, cat),
+    date: getChangeInfo(dateChanged, prevDate, date),
+    amount: getChangeInfo(amountChanged, prevAmount, amount),
+    payment: getChangeInfo(payChanged, prevPay, payment),
+    notes: getChangeInfo(notesChanged, prevNotes, notes),
+  }
+}
+
+type ExpenseHistoryInfo = ReturnType<typeof getHistoryInfo>
+
+const isMayorChange = (historyInfo: ExpenseHistoryInfo) => {
+  const { title, amount, payment, notes } = historyInfo
+  return title.changed || amount.changed || payment.changed || notes.changed
+}
+
+type ExpenseHistoryCardProps = {
+  expense: APIExpense
+  historyInfo: ExpenseHistoryInfo
+  selected: boolean
+  onClick: () => void
+}
+
+export function ExpenseHistoryCard({
+  expense,
+  historyInfo,
+  selected,
+  onClick,
+}: ExpenseHistoryCardProps) {
+  const { summary, title, category, date, amount, payment, notes } = historyInfo
+  const selectable = historyInfo.action !== 'deleted' && !selected
+  const notesAction = notes.changed
+    ? !notes.prev
+      ? 'Notes added'
+      : !notes.curr
+      ? 'Notes removed'
+      : 'Notes changed'
+    : null
 
   return (
     <div
@@ -117,22 +148,22 @@ export function ExpenseHistoryCard({
       <div className="relative">
         <CategoryExpenseIcon
           textClassName={cn(
-            dateChanged && 'text-green-600 border-green-600 border-b-2',
+            date.changed && 'text-green-600 border-green-600 border-b-2',
           )}
           expense={expense}
         />
-        {catChanged && (
+        {category.changed && (
           <Sparkles className="absolute -top-2 -right-2 w-4 h-4 text-green-600 fill-green-600" />
         )}
       </div>
       <div className="flex-1 ml-2 content-center">
         <div className="text-sm">
           {summary + ' "'}
-          <ChangeSpan prev={prevExp?.title} curr={currExp?.title} />
+          <ChangeSpan info={title} />
           {'"'}
         </div>
         <div className="text-xs text-muted-foreground">
-          <ChangeSpan prev={prevPaymentString} curr={paymentString} />
+          <ChangeSpan info={payment} />
           {notesAction && (
             <>
               {', '}
@@ -150,7 +181,7 @@ export function ExpenseHistoryCard({
         </div>
       </div>
       <div className="flex flex-col items-end content-center font-bold whitespace-nowrap justify-center">
-        <ChangeSpan prev={amountPrev} curr={amount} />
+        <ChangeSpan info={amount} />
       </div>
       <ChevronRight
         className={cn([
@@ -161,3 +192,6 @@ export function ExpenseHistoryCard({
     </div>
   )
 }
+
+ExpenseHistoryCard.getHistoryInfo = getHistoryInfo
+ExpenseHistoryCard.isMayorChange = isMayorChange
