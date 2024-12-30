@@ -1,6 +1,5 @@
 'use client'
 import { APIExpense, deleteExpense } from '@/lib/api'
-import { useActiveUser } from '@/lib/hooks'
 import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { AsyncButton } from './async-button'
@@ -14,10 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog'
+import { cached } from '@/app/cached-functions'
 
 export const DeleteExpensePopup = ({ expense }: { expense: APIExpense }) => {
   const router = useRouter()
-  const activeUser = useActiveUser(expense.groupId)
+  const activeUser = cached.getActiveUser(expense.groupId)
 
   async function onDelete() {
     await deleteExpense(expense.id, activeUser)

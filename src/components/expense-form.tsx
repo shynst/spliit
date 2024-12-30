@@ -1,4 +1,5 @@
 'use client'
+import { cached } from '@/app/cached-functions'
 import { CategorySelector } from '@/components/category-selector'
 import { ExpenseDocumentsInput } from '@/components/expense-documents-input'
 import { SubmitButton } from '@/components/submit-button'
@@ -31,7 +32,6 @@ import {
 } from '@/components/ui/select'
 import { APIExpense, APIGroup, randomId } from '@/lib/api'
 import { RuntimeFeatureFlags } from '@/lib/featureFlags'
-import { useActiveUser } from '@/lib/hooks'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn, getPaymentInfo } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -89,7 +89,7 @@ export function ExpenseForm({
   const [saveAsNew, setSaveAsNew] = useState(!isCurrentExpense)
   const s_save = saveAsNew ? 'Save as New' : 'Save'
 
-  const activeUser = useActiveUser(group.id)
+  const activeUser = cached.getActiveUser(group.id)
 
   const searchParams = useSearchParams()
   const getSelectedPayer = (field?: { value: string }) =>

@@ -1,6 +1,6 @@
 'use client'
+import { cached } from '@/app/cached-functions'
 import { APIExpense, APIGroup } from '@/lib/api'
-import { useActiveUser } from '@/lib/hooks'
 import {
   getTotalActiveUserPaidFor,
   getTotalActiveUserShare,
@@ -16,8 +16,7 @@ export function Totals({
   expenses: APIExpense[]
   totalGroupSpendings: number
 }) {
-  const activeUser = useActiveUser(group.id)
-  const currency = group.currency
+  const activeUser = cached.getActiveUser(group.id)
 
   return (
     <>

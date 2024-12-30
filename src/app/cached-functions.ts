@@ -12,7 +12,11 @@ function logAndCache<P extends any[], R>(fn: (...args: P) => R) {
   }
 }
 
+const getActiveUser = (group: string) =>
+  localStorage?.getItem(`${group}-activeUser`) || null
+
 export const cached = {
   getGroup: logAndCache(getGroup),
+  getActiveUser: logAndCache(getActiveUser),
   getCategories: logAndCache(getCategories),
 }
