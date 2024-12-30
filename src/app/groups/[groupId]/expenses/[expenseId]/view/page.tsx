@@ -11,7 +11,7 @@ import {
   formatExpenseDate,
   getPaymentString,
 } from '@/lib/utils'
-import { Edit, HistoryIcon } from 'lucide-react'
+import { Edit } from 'lucide-react'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ExpenseHistory } from './expense-history'
@@ -112,8 +112,7 @@ function ViewExpense({
 
       {history.length > 1 && (
         <Card>
-          <CardHeader className="flex-row gap-2 space-y-0">
-            <HistoryIcon />
+          <CardHeader>
             <CardTitle>History</CardTitle>
           </CardHeader>
           <CardContent className="p-0 pt-2 pb-4 sm:p-0 sm:pb-6 flex flex-col gap-4">

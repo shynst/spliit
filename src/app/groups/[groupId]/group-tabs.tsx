@@ -1,6 +1,6 @@
 'use client'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Settings } from 'lucide-react'
+import { HistoryIcon, SettingsIcon } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 
 export function GroupTabs({ groupId }: { groupId: string }) {
@@ -20,9 +20,11 @@ export function GroupTabs({ groupId }: { groupId: string }) {
       <TabsList>
         <TabsTrigger value="expenses">Expenses</TabsTrigger>
         <TabsTrigger value="balances">Balances</TabsTrigger>
-        <TabsTrigger value="history">History</TabsTrigger>
+        <TabsTrigger value="history">
+          <HistoryIcon strokeWidth={1.5} />
+        </TabsTrigger>
         <TabsTrigger value="edit">
-          <Settings strokeWidth={1.5} />
+          <SettingsIcon strokeWidth={1.5} />
         </TabsTrigger>
       </TabsList>
     </Tabs>
