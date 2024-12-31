@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { APIExpense, APIGroup, randomId } from '@/lib/api'
+import { currencies } from '@/lib/currencies'
 import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn, getPaymentInfo } from '@/lib/utils'
@@ -340,13 +341,28 @@ export function ExpenseForm({
                 name="currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>&nbsp;</FormLabel>
+                    <FormLabel>{field.value}</FormLabel>
                     <FormControl>
-                      <Input
-                        className="text-base w-[50px] p-1 text-center"
-                        placeholder="€, $…"
-                        {...field}
-                      />
+                      <Select
+                        onValueChange={(value: string) =>
+                          form.setValue(field.name, value)
+                        }
+                        defaultValue={field.value}
+                      >
+                        <SelectTrigger className="max-w-[58px] whitespace-nowrap group hide-arrow">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currencies.map((currency) => (
+                            <SelectItem
+                              key={currency.code}
+                              value={currency.symbol}
+                            >
+                              {currency.code}&nbsp;&nbsp;&nbsp;{currency.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
