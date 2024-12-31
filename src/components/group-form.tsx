@@ -269,7 +269,8 @@ export function GroupForm({
                         <SelectValue placeholder="Select a participant" />
                       </SelectTrigger>
                       <SelectContent>
-                        {[{ name: 'None' }, ...form.watch('participants')]
+                        {form
+                          .watch('participants')
                           .filter((item) => item.name.length > 0)
                           .map(({ name }) => (
                             <SelectItem key={name} value={name}>

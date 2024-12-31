@@ -89,7 +89,7 @@ export default async function GroupPage({ params: { groupId } }: Props) {
             if (expenseMapEntries.length === 0) {
               return (
                 <div className="text-sm">
-                  Your group doesn&apos;t contain any expenses.
+                  Your group doesn’t contain any expenses.
                 </div>
               )
             }
@@ -139,7 +139,7 @@ export default async function GroupPage({ params: { groupId } }: Props) {
                   ))
                 ) : (
                   <div className="text-sm">
-                    Your group doesn&apos;t need any reimbursement.
+                    Your group doesn’t need any reimbursement.
                   </div>
                 )
               })()}

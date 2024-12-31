@@ -31,21 +31,17 @@ export function ActiveUserModal({ group }: { group: APIGroup }) {
   useEffect(() => {
     const tempUser = localStorage.getItem(`newGroup-activeUser`)
     const activeUser = localStorage.getItem(`${group.id}-activeUser`)
-    if (!tempUser && !activeUser) {
+    if (
+      (!tempUser || tempUser.toLowerCase() === 'none') &&
+      (!activeUser || activeUser.toLowerCase() === 'none')
+    ) {
       setOpen(true)
     }
   }, [group])
 
-  function updateOpen(open: boolean) {
-    if (!open && !localStorage.getItem(`${group.id}-activeUser`)) {
-      localStorage.setItem(`${group.id}-activeUser`, 'None')
-    }
-    setOpen(open)
-  }
-
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={updateOpen}>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Who are you?</DialogTitle>
@@ -57,7 +53,7 @@ export function ActiveUserModal({ group }: { group: APIGroup }) {
           <ActiveUserForm group={group} close={() => setOpen(false)} />
           <DialogFooter className="sm:justify-center">
             <p className="text-sm text-center text-muted-foreground">
-              This setting can be changed later in the group settings.
+              This is also used to preselect who pays for new expenses.
             </p>
           </DialogFooter>
         </DialogContent>
@@ -66,7 +62,7 @@ export function ActiveUserModal({ group }: { group: APIGroup }) {
   }
 
   return (
-    <Drawer open={open} onOpenChange={updateOpen}>
+    <Drawer open={open} onOpenChange={setOpen}>
       <DrawerContent>
         <DrawerHeader className="text-left">
           <DrawerTitle>Who are you?</DrawerTitle>
@@ -82,7 +78,7 @@ export function ActiveUserModal({ group }: { group: APIGroup }) {
         />
         <DrawerFooter className="pt-2">
           <p className="text-sm text-center text-muted-foreground">
-            This setting can be changed later in the group settings.
+            This is also used to preselect who pays for new expenses.
           </p>
         </DrawerFooter>
       </DrawerContent>
@@ -102,18 +98,13 @@ function ActiveUserForm({
       className={cn('grid items-start gap-4', className)}
       onSubmit={(event) => {
         event.preventDefault()
+        if (selected === 'None') return
         localStorage.setItem(`${group.id}-activeUser`, selected)
         close()
       }}
     >
       <RadioGroup defaultValue="none" onValueChange={setSelected}>
         <div className="flex flex-col gap-4 my-4">
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="none" id="none" />
-            <Label htmlFor="none" className="italic font-normal flex-1">
-              I don’t want to select anyone
-            </Label>
-          </div>
           {group.participants.map((participant) => (
             <div key={participant.id} className="flex items-center space-x-2">
               <RadioGroupItem value={participant.id} id={participant.id} />
