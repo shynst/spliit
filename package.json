@@ -10,6 +10,7 @@
     "check-types": "tsc --noEmit",
     "check-formatting": "prettier -c src",
     "prettier": "prettier -w src",
+    "query-db": "ts-node ./src/scripts/query-db.ts",
     "postinstall": "./scripts/generate-prisma-schema.sh && prisma migrate deploy && prisma generate",
     "build-image": "./scripts/build-image.sh",
     "transfer-image": "docker save spliit2 | bzip2 | pv | ssh ampere sudo docker load",
@@ -76,6 +77,7 @@
     "prettier": "^3.0.3",
     "prettier-plugin-organize-imports": "^3.2.3",
     "tailwindcss": "^3",
+    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
   },
