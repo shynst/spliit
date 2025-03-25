@@ -1,4 +1,5 @@
 'use client'
+import { cached } from '@/app/cached-functions'
 import { APIExpense, deleteExpense } from '@/lib/api'
 import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -13,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog'
-import { cached } from '@/app/cached-functions'
 
 export const DeleteExpensePopup = ({ expense }: { expense: APIExpense }) => {
   const router = useRouter()
@@ -47,7 +47,7 @@ export const DeleteExpensePopup = ({ expense }: { expense: APIExpense }) => {
           >
             Yes
           </AsyncButton>
-          <Button variant={'secondary'}>
+          <Button asChild variant={'secondary'}>
             <DialogClose>Cancel</DialogClose>
           </Button>
         </DialogFooter>
