@@ -7,14 +7,14 @@ import { notFound } from 'next/navigation'
 import { PropsWithChildren, Suspense } from 'react'
 
 type Props = {
-  params: {
+  params: Promise<{
     groupId: string
-  }
+  }>
 }
 
-export async function generateMetadata({
-  params: { groupId },
-}: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const { groupId } = await props.params
+
   const group = await cached.getGroup(groupId)
 
   return {
@@ -25,10 +25,10 @@ export async function generateMetadata({
   }
 }
 
-export default async function GroupLayout({
-  children,
-  params: { groupId },
-}: PropsWithChildren<Props>) {
+export default async function GroupLayout(props: PropsWithChildren<Props>) {
+  const { groupId } = await props.params
+  const { children } = props
+
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
 

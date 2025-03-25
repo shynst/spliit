@@ -52,6 +52,7 @@ export function getTotalActiveUserShare(
       return
     }
 
+    let totalShares = 0
     switch (expense.splitMode) {
       case 'EVENLY':
         // Divide the total expense evenly among all participants
@@ -67,10 +68,7 @@ export function getTotalActiveUserShare(
         break
       case 'BY_SHARES':
         // Calculate the user's share based on their shares relative to the total shares
-        const totalShares = paidFors.reduce(
-          (sum, paidFor) => sum + paidFor.shares,
-          0,
-        )
+        totalShares = paidFors.reduce((sum, paidFor) => sum + paidFor.shares, 0)
         if (totalShares > 0) {
           total += (balance * userPaidFor.shares) / totalShares
         }
@@ -151,19 +149,24 @@ export function getPublicBalances(reimbursements: Reimbursement[]): Balances {
   return balances
 }
 
+type BalanceItem = { participantId: string; total: number }
+
 /**
  * A comparator that is stable across reimbursements.
  * This ensures that a participant executing a suggested reimbursement
  * does not result in completely new repayment suggestions.
  */
-function compareBalancesForReimbursements(b1: any, b2: any): number {
+function compareBalancesForReimbursements(
+  b1: BalanceItem,
+  b2: BalanceItem,
+): number {
   // positive balances come before negative balances
   if (b1.total > 0 && 0 > b2.total) {
     return -1
   } else if (b2.total > 0 && 0 > b1.total) {
     return 1
   }
-  // if signs match, sort based on userid
+  // if signs match, sort based on user id
   return b1.participantId < b2.participantId ? -1 : 1
 }
 

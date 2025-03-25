@@ -29,7 +29,9 @@ export function CategoryIcon({
   ...props
 }: { category: CatIcon | null; coloredIcon?: boolean } & lucide.LucideProps) {
   const Icon: lucide.LucideIcon =
-    (category && (lucide as any)[category.icon]) ?? lucide.Banknote
+    (category &&
+      (lucide[category.icon as keyof typeof lucide] as lucide.LucideIcon)) ??
+    lucide.Banknote
   return (
     <Icon
       {...props}

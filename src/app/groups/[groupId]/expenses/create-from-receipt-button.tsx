@@ -69,7 +69,7 @@ export function CreateFromReceiptButton({ group, categories }: Props) {
       try {
         setPending(true)
         console.log('Uploading image…')
-        let { url } = await uploadToS3(file)
+        const { url } = await uploadToS3(file)
         console.log('Extracting information from receipt…')
         const { amount, categoryId, date, title } =
           await extractExpenseInformationFromImage(url)
@@ -163,7 +163,9 @@ export function CreateFromReceiptButton({ group, categories }: Props) {
             </Button>
             <div className="col-span-2">
               <strong>Title:</strong>
-              <div>{receiptInfo ? receiptInfo.title ?? <Unknown /> : '…'}</div>
+              <div>
+                {receiptInfo ? (receiptInfo.title ?? <Unknown />) : '…'}
+              </div>
             </div>
             <div className="col-span-2">
               <strong>Category:</strong>

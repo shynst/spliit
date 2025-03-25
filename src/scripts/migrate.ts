@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { randomId } from '@/lib/api'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
@@ -81,7 +80,9 @@ async function main() {
           categoryId: 1,
           expenseDate: new Date(expenseRow.created_at.toDateString()),
           createdAt: expenseRow.created_at,
-          isReimbursement: expenseRow.is_reimbursement === true,
+          expenseType: expenseRow.is_reimbursement
+            ? 'REIMBURSEMENT'
+            : 'EXPENSE',
           paidById: participantIdsMapping[expenseRow.paid_by_participant_id],
         })
       }

@@ -89,9 +89,7 @@ export const expenseFormSchema = z
       )
       .min(1, 'The transaction must include at least one participant.')
       .superRefine((paidFor, ctx) => {
-        let sum = 0
         for (const { shares } of paidFor) {
-          sum += shares
           if (shares < 1) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -101,14 +99,16 @@ export const expenseFormSchema = z
         }
       }),
     splitMode: z
-      .enum<SplitMode, [SplitMode, ...SplitMode[]]>(
-        Object.values(SplitMode) as any,
-      )
+      .enum<
+        SplitMode,
+        [SplitMode, ...SplitMode[]]
+      >(Object.values(SplitMode) as [SplitMode, ...SplitMode[]])
       .default('EVENLY'),
     expenseType: z
-      .enum<ExpenseType, [ExpenseType, ...ExpenseType[]]>(
-        Object.values(ExpenseType) as any,
-      )
+      .enum<
+        ExpenseType,
+        [ExpenseType, ...ExpenseType[]]
+      >(Object.values(ExpenseType) as [ExpenseType, ...ExpenseType[]])
       .default('EXPENSE'),
     documents: z
       .array(

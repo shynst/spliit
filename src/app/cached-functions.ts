@@ -1,7 +1,7 @@
 import { getCategories, getGroup } from '@/lib/api'
 import { cache } from 'react'
 
-function logAndCache<P extends any[], R>(fn: (...args: P) => R) {
+function logAndCache<P extends unknown[], R>(fn: (...args: P) => R) {
   const cached = cache((...args: P) => {
     // console.log(`Not cached: ${fn.name}…`)
     return fn(...args)

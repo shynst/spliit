@@ -9,11 +9,11 @@ export const metadata: Metadata = {
   title: 'Settings',
 }
 
-export default async function EditGroupPage({
-  params: { groupId },
-}: {
-  params: { groupId: string }
+export default async function EditGroupPage(props: {
+  params: Promise<{ groupId: string }>
 }) {
+  const { groupId } = await props.params
+
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
 

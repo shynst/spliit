@@ -36,10 +36,12 @@ interface ExpenseBalances {
   reimbursements: Reimbursement[]
 }
 
-type Props = { params: { groupId: string } }
+type Props = { params: Promise<{ groupId: string }> }
 type ListWithCurrencyProps = { currency: string; children: React.ReactNode }
 
-export default async function GroupPage({ params: { groupId } }: Props) {
+export default async function GroupPage(props: Props) {
+  const { groupId } = await props.params
+
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
 

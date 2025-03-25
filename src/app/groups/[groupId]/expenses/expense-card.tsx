@@ -16,7 +16,6 @@ type Props = {
 
 export function ExpenseCard({
   expense,
-  group,
   activeUserId,
   numMembers,
   onClick,

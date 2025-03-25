@@ -4,8 +4,10 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   req: Request,
-  { params: { groupId } }: { params: { groupId: string } },
+  props: { params: Promise<{ groupId: string }> },
 ) {
+  const { groupId } = await props.params
+
   const group = await prisma.group.findUnique({
     where: { id: groupId },
     select: {
