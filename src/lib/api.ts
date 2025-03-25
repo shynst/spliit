@@ -203,6 +203,7 @@ export async function updateExpense(
       createdById: undefined,
       createdAt: undefined,
       paidBy: undefined,
+      categoryId: -1,
       category: undefined,
       expenseState: undefined,
       prevVersionId: undefined,
@@ -223,8 +224,18 @@ export async function updateExpense(
       })
       if (!currExp) throw new Error(`Invalid expense ID: ${expenseId}`)
 
-      if (equal(normalize(currExp), normalize(createParams.data)))
+      if (equal(normalize(currExp), normalize(createParams.data))) {
+        // trivial change: only category changed
+        //   do not create a new version, just update the category
+        if (currExp.categoryId !== createParams.data.categoryId) {
+          await tx.expense.update({
+            where: { id: expenseId },
+            data: { categoryId: createParams.data.categoryId },
+          })
+          currExp.categoryId = createParams.data.categoryId
+        }
         return currExp
+      }
 
       await tx.expense.update({
         where: { id: expenseId },

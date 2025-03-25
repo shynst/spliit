@@ -38,7 +38,7 @@ export const currencies = [
   { name: 'Estonian Kroon', symbol: 'Ekr', code: 'EEK' },
   { name: 'Egyptian Pound', symbol: 'EGP', code: 'EGP' },
   { name: 'Eritrean Nakfa', symbol: 'Nfk', code: 'ERN' },
-  { name: 'Ethiopian Birr', symbol: 'Br', code: 'ETB' },
+  { name: 'Ethiopian Birr', symbol: 'EBr', code: 'ETB' },
   { name: 'British Pound Sterling', symbol: '£', code: 'GBP' },
   { name: 'Georgian Lari', symbol: 'GEL', code: 'GEL' },
   { name: 'Ghanaian Cedi', symbol: 'GH₵', code: 'GHS' },
