@@ -67,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <ApplePwaSplash icon="/logo-with-text.png" color="#027756" />
-      <body className="pt-16 min-h-[100dvh] flex flex-col items-stretch bg-slate-50 bg-opacity-30 dark:bg-background">
+      <body className="min-h-[100dvh] flex flex-col items-stretch bg-slate-50 bg-opacity-30 dark:bg-background">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -110,7 +110,7 @@ export default function RootLayout({
             </div>
           </header>
 
-          <div className="flex-1 flex flex-col">{children}</div>
+          <div className="pt-16 flex-1 flex flex-col">{children}</div>
 
           <Toaster />
         </ThemeProvider>
