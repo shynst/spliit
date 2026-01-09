@@ -150,7 +150,7 @@ async function getCreateExpenseParams(
       categoryId: expenseFormValues.category,
       amount: expenseFormValues.amount,
       currency: expenseFormValues.currency,
-      title: expenseFormValues.title,
+      title: expenseFormValues.title.trim(),
       paidById: expenseFormValues.paidBy,
       splitMode: expenseFormValues.splitMode,
       paidFor: {
