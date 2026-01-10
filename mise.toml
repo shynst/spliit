@@ -3,14 +3,17 @@ _.path = ['./node_modules/.bin']
 
 [tools]
 node = "21"
+pnpm = "latest"
 
 [hooks]
 enter = '''
-    if [ ! -f .mise.lock ] || [ mise.toml -nt .mise.lock ]
+    if [ ! -f .mise.lock ] || [ mise.toml -nt .mise.lock ] || [ pnpm-lock.yaml -nt .mise.lock ] 
     then
         mise upgrade
+        pnpm install
         touch .mise.lock
     fi
     printf "\033[32m[+] dev tools\033[0m\n"
     printf "    - \033[32mnode\033[0m $(node -v | sed 's/v//')\n"
+    printf "    - \033[32mpnpm\033[0m $(pnpm -v)\n"
     '''
