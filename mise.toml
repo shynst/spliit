@@ -1,0 +1,16 @@
+[env]
+_.path = ['./node_modules/.bin']
+
+[tools]
+node = "21"
+
+[hooks]
+enter = '''
+    if [ ! -f .mise.lock ] || [ mise.toml -nt .mise.lock ]
+    then
+        mise upgrade
+        touch .mise.lock
+    fi
+    printf "\033[32m[+] dev tools\033[0m\n"
+    printf "    - \033[32mnode\033[0m $(node -v | sed 's/v//')\n"
+    '''
