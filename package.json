@@ -13,7 +13,7 @@
     "query-db": "ts-node ./src/scripts/query-db.ts",
     "postinstall": "./scripts/generate-prisma-schema.sh && prisma migrate deploy && prisma generate",
     "build-image": "./scripts/build-image.sh",
-    "transfer-image": "docker save spliit2 | bzip2 | pv | ssh ampere sudo docker load",
+    "transfer-image": "docker save spliit2 | bzip2 | pv | ssh ampere sudo docker load && docker buildx prune -f",
     "start-container": "docker compose up"
   },
   "dependencies": {

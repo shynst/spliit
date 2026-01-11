@@ -1,48 +1,51 @@
-FROM node:21-alpine AS base
+FROM node:24-alpine AS base
 
 WORKDIR /usr/app
-COPY ./package.json \
-     ./package-lock.json \
-     ./next.config.js \
-     ./tsconfig.json \
-     ./reset.d.ts \
-     ./tailwind.config.js \
-     ./postcss.config.js ./
-COPY ./scripts ./scripts
-COPY ./prisma ./prisma
-
-RUN apk add --no-cache openssl && \
-    npm ci --ignore-scripts && \
-    npx prisma generate
-
-COPY ./src ./src
-
-ENV NEXT_TELEMETRY_DISABLED=1
-
+COPY prisma prisma
+COPY src src
+COPY next.config.js \
+     package.json \
+     pnpm-lock.yaml \
+     pnpm-workspace.yaml \
+     postcss.config.js \
+     reset.d.ts \
+     tailwind.config.js \
+     tsconfig.json ./
 COPY scripts/build.env .env
-RUN npm run build
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN apk add --no-cache openssl && \
+    npm i -g pnpm && \
+    pnpm i --ignore-scripts && \
+    pnpm prisma generate && \
+    pnpm run build && rm -r .next/cache
 
-RUN rm -r .next/cache
 
-FROM node:21-alpine AS runtime-deps
+FROM node:24-alpine AS runtime-deps
 
 WORKDIR /usr/app
-COPY --from=base /usr/app/package.json /usr/app/package-lock.json /usr/app/next.config.js ./
-COPY --from=base /usr/app/prisma ./prisma
+COPY prisma prisma
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN apk add --no-cache openssl && \
+    npm i -g pnpm && \
+    pnpm i --prod --no-optional --ignore-scripts && \
+    pnpm --package="prisma@^5.15.0" dlx prisma generate
 
-RUN npm ci --omit=dev --omit=optional --ignore-scripts && \
-    npx prisma generate
 
-FROM node:21-alpine AS runner
+FROM node:24-alpine
+
+WORKDIR /usr/app
+COPY prisma prisma
+COPY public public
+COPY next.config.js ./
+COPY --from=base /usr/app/.next .next
+COPY --from=runtime-deps /usr/app/node_modules node_modules
+COPY --chmod=755 <<EOF entrypoint.sh
+#!/bin/sh
+set -euxo pipefail
+pnpm --package="prisma@^5.15.0" dlx prisma migrate deploy
+./node_modules/.bin/next start
+EOF
+RUN apk add --no-cache openssl && npm i -g pnpm
 
 EXPOSE 3000/tcp
-WORKDIR /usr/app
-
-COPY --from=base /usr/app/package.json /usr/app/package-lock.json /usr/app/next.config.js ./
-COPY --from=runtime-deps /usr/app/node_modules ./node_modules
-COPY ./public ./public
-COPY ./scripts ./scripts
-COPY --from=base /usr/app/prisma ./prisma
-COPY --from=base /usr/app/.next ./.next
-
-ENTRYPOINT ["/bin/sh", "/usr/app/scripts/container-entrypoint.sh"]
+ENTRYPOINT ["/usr/app/entrypoint.sh"]

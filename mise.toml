@@ -2,7 +2,7 @@
 _.path = ['./node_modules/.bin']
 
 [tools]
-node = "21"
+node = "24"
 pnpm = "latest"
 
 [hooks]
