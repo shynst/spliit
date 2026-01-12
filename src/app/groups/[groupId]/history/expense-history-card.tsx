@@ -16,7 +16,7 @@ const getAmount = (expense: APIExpense | undefined) =>
     (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount,
   )
 
-const getChangeInfo = <T,>(changed: any, prev: T, current: T) => ({
+const getChangeInfo = <T,>(changed: unknown, prev: T, current: T) => ({
   changed: !!changed,
   prev: prev || undefined,
   curr: current || undefined,
@@ -129,8 +129,8 @@ export function ExpenseHistoryCard({
     ? !notes.prev
       ? 'Notes added'
       : !notes.curr
-      ? 'Notes removed'
-      : 'Notes changed'
+        ? 'Notes removed'
+        : 'Notes changed'
     : null
 
   return (

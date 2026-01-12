@@ -11,12 +11,13 @@ export const metadata: Metadata = {
   title: 'Edit expense',
 }
 
-export default async function EditExpensePage({
-  params: { groupId, expenseId },
-}: {
-  params: { groupId: string; expenseId: string }
+export default async function EditExpensePage(props: {
+  params: Promise<{ groupId: string; expenseId: string }>
 }) {
   'use server'
+
+  const { groupId, expenseId } = await props.params
+
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
   const expense = await getExpense(expenseId)

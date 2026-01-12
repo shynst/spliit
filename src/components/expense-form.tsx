@@ -36,7 +36,7 @@ import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn, getPaymentInfo } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Category } from '@prisma/client'
+import { Category, SplitMode } from '@prisma/client'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { ChevronDown, Save } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -182,19 +182,19 @@ export function ExpenseForm({
     (numPaid === 0
       ? 'none'
       : numPaid === members.length && formValues.splitMode === 'EVENLY'
-      ? 'all'
-      : getPaymentInfo(
-          null,
-          {
-            paidFor: formValues.paidFor.map((pf) => ({
-              participant:
-                members.find((m) => m.id === pf.participant) ?? someone,
-              shares: 100 * pf.shares,
-            })),
-            splitMode: formValues.splitMode,
-          },
-          members.length,
-        ).transactionTo)
+        ? 'all'
+        : getPaymentInfo(
+            null,
+            {
+              paidFor: formValues.paidFor.map((pf) => ({
+                participant:
+                  members.find((m) => m.id === pf.participant) ?? someone,
+                shares: 100 * pf.shares,
+              })),
+              splitMode: formValues.splitMode,
+            },
+            members.length,
+          ).transactionTo)
 
   const [sm_describe, setSMDescribe] = useState(false)
 
@@ -203,7 +203,10 @@ export function ExpenseForm({
     className,
     ...props
   }: { fieldName?: string } & React.ComponentProps<typeof FDescription>) =>
-    !!(fieldName && form.getFieldState(fieldName as any).invalid) || (
+    !!(
+      fieldName &&
+      form.getFieldState(fieldName as keyof ExpenseFormValues).invalid
+    ) || (
       <FDescription
         className={cn(className, !sm_describe && 'max-sm:hidden')}
         {...props}
@@ -318,7 +321,7 @@ export function ExpenseForm({
                         onFocus={(e) => {
                           {
                             // we're adding a small delay to get around safaris issue with onMouseUp deselecting things again
-                            let target = e.currentTarget
+                            const target = e.currentTarget
                             setTimeout(function () {
                               target.select()
                             }, 1)
@@ -401,8 +404,8 @@ export function ExpenseForm({
                     {expenseType === 'EXPENSE'
                       ? 'Outgoing payment increases group\u00A0spending.'
                       : expenseType === 'INCOME'
-                      ? 'Incoming payment reduces group\u00A0spending.'
-                      : 'Internal payment does not affect group\u00A0spending.'}
+                        ? 'Incoming payment reduces group\u00A0spending.'
+                        : 'Internal payment does not affect group\u00A0spending.'}
                   </FormDescription>
                 </FormItem>
               )}
@@ -601,8 +604,8 @@ export function ExpenseForm({
                                                   )?.shares || ''
                                                 }
                                                 onChange={(event) => {
-                                                  const v: any =
-                                                    field.value.map((p) =>
+                                                  const v = field.value.map(
+                                                    (p) =>
                                                       p.participant === id
                                                         ? {
                                                             participant: id,
@@ -613,7 +616,10 @@ export function ExpenseForm({
                                                               ),
                                                           }
                                                         : p,
-                                                    )
+                                                  ) as {
+                                                    participant: string
+                                                    shares: number
+                                                  }[]
                                                   form.setValue(
                                                     field.name,
                                                     v,
@@ -653,7 +659,7 @@ export function ExpenseForm({
                         <FormLabel>Split mode</FormLabel>
                         <FormControl>
                           <Select
-                            onValueChange={(value: any) => {
+                            onValueChange={(value: unknown) => {
                               const formValues = form.getValues()
                               const pf = formValues.paidFor
                               let shares: number
@@ -666,6 +672,7 @@ export function ExpenseForm({
                                   shares = formValues.amount / (pf.length || 1)
                                   break
                                 default:
+                                  value = 'EVENLY'
                                   shares = 1
                                   break
                               }
@@ -675,7 +682,7 @@ export function ExpenseForm({
                                 shares: String(shares) as unknown as number,
                               }))
 
-                              form.setValue(field.name, value)
+                              form.setValue(field.name, value as SplitMode)
                               form.setValue('paidFor', newPf, MarkDirty)
                             }}
                             defaultValue={field.value}
@@ -801,6 +808,6 @@ export function ExpenseForm({
 }
 
 function formatDate(date?: Date) {
-  if (!date || isNaN(date as any)) date = new Date()
+  if (!date) date = new Date()
   return date.toISOString().substring(0, 10)
 }

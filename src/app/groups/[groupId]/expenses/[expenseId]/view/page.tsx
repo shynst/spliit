@@ -18,12 +18,13 @@ import { ExpenseHistory } from './expense-history'
 
 export const metadata: Metadata = { title: 'View expense' }
 
-export default async function ViewExpensePage({
-  params: { groupId, expenseId },
-}: {
-  params: { groupId: string; expenseId: string }
+export default async function ViewExpensePage(props: {
+  params: Promise<{ groupId: string; expenseId: string }>
 }) {
   'use server'
+
+  const { groupId, expenseId } = await props.params
+
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
   const expense = await getExpense(expenseId, { includeHistory: true })

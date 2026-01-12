@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 
 export function GroupTabs({ groupId }: { groupId: string }) {
   const pathname = usePathname()
-  const value = pathname.match(/\/groups\/[^\/]+\/(.*)\/?$/)?.[1] || 'expenses'
+  const value = pathname.match(/\/groups\/[^/]+\/(.*)\/?$/)?.[1] || 'expenses'
   const router = useRouter()
 
   return (

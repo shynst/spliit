@@ -10,7 +10,7 @@ import { APIExpense, APIGroup, getExpenseList } from '@/lib/api'
 import { formatExpenseGroupDate, normalizeString } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type JSX } from 'react'
 import { useInView } from 'react-intersection-observer'
 
 type Props = {
@@ -138,9 +138,9 @@ export function ExpenseList({
   const onExpenseClick = (expenseId: string) => {
     const viewUrl = `/groups/${groupId}/expenses/${expenseId}/view`
     const rExp = new RegExp(`/groups/${groupId}/expenses/[^/]+/view/?$`)
-    pathname.match(rExp)
-      ? router.replace(viewUrl + '?showHistory=1')
-      : router.push(viewUrl)
+    if (pathname.match(rExp)) {
+      router.replace(viewUrl + '?showHistory=1')
+    } else router.push(viewUrl)
   }
 
   return expenses.length > 0 ? (

@@ -362,7 +362,7 @@ export async function getExpense(
         : expenseIncludeParams
 
       const get = (key: 'id' | 'prevVersionId', id: string) =>
-        tx.expense.findUnique({ where: { [key]: id } as any, include })
+        tx.expense.findUnique({ where: { [key]: id } as never, include })
 
       expense = await get('id', expenseId)
 
@@ -388,7 +388,9 @@ export async function getExpense(
         await getForwardHistory(expense)
       }
     })
-  } catch {}
+  } catch {
+    /* ignored */
+  }
 
   return expense
 }
