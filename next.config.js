@@ -1,3 +1,5 @@
+const { version } = require('./package.json')
+
 /** 
  * Undefined entries are not supported. Push optional patterns to this array only if defined.
  * @type {import('next/dist/shared/lib/image-config').RemotePattern}
@@ -28,7 +30,10 @@ const nextConfig = {
     serverActions: {
         allowedOrigins: ['localhost:3000'],
     },
-},
+  },
+  env: {
+    appVersion: version,
+  },
 }
 
 module.exports = nextConfig

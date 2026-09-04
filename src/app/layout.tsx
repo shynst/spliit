@@ -5,6 +5,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/toaster'
 import { env } from '@/lib/env'
+import { InfoCircledIcon } from '@radix-ui/react-icons'
 import type { Metadata, Viewport } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -97,10 +98,14 @@ export default function RootLayout({
                 <li>
                   <Button
                     variant="ghost"
+                    size="icon"
                     asChild
-                    className="-my-3 text-primary"
+                    className="text-primary"
                   >
-                    <Link href="/groups">Groups</Link>
+                    <Link href="/about">
+                      <InfoCircledIcon className="h-[1.2rem] w-[1.2rem]" />
+                      <span className="sr-only">About</span>
+                    </Link>
                   </Button>
                 </li>
                 <li>
