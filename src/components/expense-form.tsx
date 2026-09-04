@@ -300,25 +300,7 @@ export function ExpenseForm({
                 name="amount"
                 render={({ field: { onChange, ...field } }) => (
                   <FormItem className="flex-1">
-                    <div className="flex mt-1">
-                      <FormLabel>Amount</FormLabel>
-                      <CalcNumberPopup
-                        value={field.value ?? ''}
-                        onChange={(result) =>
-                          onChange(enforceCurrencyPattern(String(result)))
-                        }
-                        trigger={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="default"
-                            className="h-5"
-                          >
-                            <Calculator className="h-4 w-4" />
-                          </Button>
-                        }
-                      />
-                    </div>
+                    <FormLabel>Amount</FormLabel>
                     <FormControl>
                       <Input
                         className="text-base min-w-[80px]"
@@ -362,7 +344,7 @@ export function ExpenseForm({
                         }
                         defaultValue={field.value}
                       >
-                        <SelectTrigger className="max-w-[58px] whitespace-nowrap group hide-arrow">
+                        <SelectTrigger className="text-xs sm:text-sm px-[5px] sm:px-3 max-w-[40px] sm:max-w-[58px] whitespace-nowrap group hide-arrow">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -380,6 +362,26 @@ export function ExpenseForm({
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+
+              <CalcNumberPopup
+                value={form.getValues().amount}
+                onChange={(result) =>
+                  form.setValue(
+                    'amount',
+                    enforceCurrencyPattern(String(result)) as unknown as number,
+                  )
+                }
+                trigger={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="default"
+                    className="sm:hidden px-0 mt-6 h-8"
+                  >
+                    <Calculator className="ml-2 h-4 w-4" />
+                  </Button>
+                }
               />
             </div>
 

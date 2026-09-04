@@ -16,7 +16,7 @@ run = "mise upgrade --quiet"
 depends = ["update:mise"]
 sources = ["package.json", "pnpm-lock.yaml"]
 outputs = ["node_modules/.modules.yaml"]
-run = "pnpm install -y --loglevel warn && touch node_modules/.modules.yaml"
+run = "pnpm install && touch node_modules/.modules.yaml"
 
 [tasks.update]
 depends = ["update:*"]
