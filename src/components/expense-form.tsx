@@ -43,7 +43,6 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { match } from 'ts-pattern'
-import { extractCategoryFromTitle } from './expense-form-actions'
 import { RouterButton } from './router-button'
 import { Textarea } from './ui/textarea'
 
@@ -259,14 +258,6 @@ export function ExpenseForm({
                       {...field}
                       onBlur={async () => {
                         field.onBlur() // avoid skipping other blur event listeners since we overwrite `field`
-                        if (runtimeFeatureFlags.enableCategoryExtract) {
-                          setCategoryLoading(true)
-                          const { categoryId } = await extractCategoryFromTitle(
-                            field.value,
-                          )
-                          form.setValue('category', categoryId)
-                          setCategoryLoading(false)
-                        }
                       }}
                     />
                   </FormControl>

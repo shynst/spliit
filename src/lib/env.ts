@@ -26,15 +26,6 @@ const envSchema = z
     S3_UPLOAD_BUCKET: z.string().optional(),
     S3_UPLOAD_REGION: z.string().optional(),
     S3_UPLOAD_ENDPOINT: z.string().optional(),
-    NEXT_PUBLIC_ENABLE_RECEIPT_EXTRACT: z.preprocess(
-      interpretEnvVarAsBool,
-      z.boolean().default(false),
-    ),
-    NEXT_PUBLIC_ENABLE_CATEGORY_EXTRACT: z.preprocess(
-      interpretEnvVarAsBool,
-      z.boolean().default(false),
-    ),
-    OPENAI_API_KEY: z.string().optional(),
   })
   .superRefine((env, ctx) => {
     if (
@@ -49,17 +40,6 @@ const envSchema = z
         code: ZodIssueCode.custom,
         message:
           'If NEXT_PUBLIC_ENABLE_EXPENSE_DOCUMENTS is specified, then S3_* must be specified too',
-      })
-    }
-    if (
-      (env.NEXT_PUBLIC_ENABLE_RECEIPT_EXTRACT ||
-        env.NEXT_PUBLIC_ENABLE_CATEGORY_EXTRACT) &&
-      !env.OPENAI_API_KEY
-    ) {
-      ctx.addIssue({
-        code: ZodIssueCode.custom,
-        message:
-          'If NEXT_PUBLIC_ENABLE_RECEIPT_EXTRACT or NEXT_PUBLIC_ENABLE_CATEGORY_EXTRACT is specified, then OPENAI_API_KEY must be specified too',
       })
     }
   })

@@ -1,6 +1,5 @@
 import { cached } from '@/app/cached-functions'
 import { ActiveUserModal } from '@/app/groups/[groupId]/expenses/active-user-modal'
-import { CreateFromReceiptButton } from '@/app/groups/[groupId]/expenses/create-from-receipt-button'
 import { ExpenseList } from '@/app/groups/expense-list'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,7 +11,6 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { APIGroup, getExpenseCount, getExpenseList } from '@/lib/api'
-import { env } from '@/lib/env'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -38,12 +36,6 @@ export async function ExpenseListPage({ group, includeHistory }: Props) {
           </CardHeader>
           {!includeHistory && (
             <CardHeader className="flex flex-row space-y-0 gap-2 max-sm:pb-0">
-              {env.NEXT_PUBLIC_ENABLE_RECEIPT_EXTRACT && (
-                <CreateFromReceiptButton
-                  group={group}
-                  categories={categories}
-                />
-              )}
               <Button asChild size="icon">
                 <Link
                   href={`/groups/${group.id}/expenses/create`}
