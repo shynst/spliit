@@ -1,19 +1,33 @@
 [env]
-_.path = ['./node_modules/.bin']
+_.path = ["./node_modules/.bin"]
+
+[settings]
+quiet = true
 
 [tools]
 node = "24"
 pnpm = "latest"
 
-[hooks]
-enter = '''
-    if [ ! -f .mise.lock ] || [ mise.toml -nt .mise.lock ] || [ pnpm-lock.yaml -nt .mise.lock ] 
-    then
-        mise upgrade
-        pnpm install
-        touch .mise.lock
-    fi
+[tasks."update:mise"]
+sources = ["mise.toml", "mise.*.toml"]
+run = "mise upgrade --quiet"
+
+[tasks."update:app"]
+depends = ["update:mise"]
+sources = ["package.json", "pnpm-lock.yaml"]
+outputs = ["node_modules/.modules.yaml"]
+run = "pnpm install -y --loglevel warn && touch node_modules/.modules.yaml"
+
+[tasks.update]
+depends = ["update:*"]
+
+[tasks."log:versions"]
+run = '''
     printf "\033[32m[+] dev tools\033[0m\n"
-    printf "    - \033[32mnode\033[0m $(node -v | sed 's/v//')\n"
-    printf "    - \033[32mpnpm\033[0m $(pnpm -v)\n"
+    printf "    \033[32m- %s\033[0m %7s\n" \
+        "node" "$(node -v | sed 's/v//')" \
+        "pnpm" "$(pnpm -v)"
     '''
+
+[hooks]
+enter = [{ task = "update" }, { task = "log:versions" }]
