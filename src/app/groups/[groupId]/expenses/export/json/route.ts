@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import contentDisposition from 'content-disposition'
+import { create } from 'content-disposition'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -37,7 +37,7 @@ export async function GET(
   return NextResponse.json(group, {
     headers: {
       'content-type': 'application/json',
-      'content-disposition': contentDisposition(`${filename}.json`),
+      'content-disposition': create(filename + '.json'),
     },
   })
 }

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 
-declare const global: Global & { prisma?: PrismaClient }
+declare const global: { prisma?: PrismaClient }
 
 export let p: PrismaClient = undefined as unknown as PrismaClient
 

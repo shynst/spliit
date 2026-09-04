@@ -8,6 +8,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from '@/components/ui/command'
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer'
 import {
@@ -39,6 +40,8 @@ export function CategorySelector({
 
   // allow overwriting currently selected category from outside
   useEffect(() => {
+    // TODO: fix this!
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValue(defaultValue)
     onValueChange(defaultValue)
   }, [defaultValue, onValueChange])
@@ -111,8 +114,8 @@ function CategoryCommand({
   return (
     <Command>
       <CommandInput placeholder="Search category..." className="text-base" />
-      <CommandEmpty>No category found.</CommandEmpty>
-      <div className="w-full max-h-[300px] overflow-y-auto">
+      <CommandList>
+        <CommandEmpty>No category found.</CommandEmpty>
         {Object.entries(categoriesByGroup).map(
           ([group, groupCategories], index) => (
             <CommandGroup key={index} heading={group}>
@@ -131,7 +134,7 @@ function CategoryCommand({
             </CommandGroup>
           ),
         )}
-      </div>
+      </CommandList>
     </Command>
   )
 }

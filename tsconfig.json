@@ -6,6 +6,7 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    "noUncheckedSideEffectImports": false,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -28,7 +29,8 @@
     "require": ["tsconfig-paths/register", "dotenv/config"],
     "compilerOptions": {
       "isolatedModules": false,
-      "module": "CommonJS"
+      "module": "CommonJS",
+      "types": ["node"]
     }
   }
 }

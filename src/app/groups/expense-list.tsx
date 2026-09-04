@@ -89,6 +89,8 @@ export function ExpenseList({
       }
     } else userId = localStorage.getItem(`${groupId}-activeUser`)
 
+    // TODO: fix this!
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveUserId(userId)
   }, [participants, groupId])
 

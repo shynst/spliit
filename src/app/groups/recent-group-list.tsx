@@ -77,6 +77,8 @@ export function RecentGroupList() {
   }
 
   useEffect(() => {
+    // TODO: fix this!
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadGroups()
   }, [])
 

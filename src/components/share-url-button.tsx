@@ -35,6 +35,8 @@ function useCanShare(url: string, text: string) {
   const [canShare, setCanShare] = useState<boolean | null>(null)
 
   useEffect(() => {
+    // TODO: fix this!
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCanShare(
       navigator.share !== undefined && navigator.canShare({ url, text }),
     )

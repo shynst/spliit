@@ -35,6 +35,8 @@ export function ActiveUserModal({ group }: { group: APIGroup }) {
       (!tempUser || tempUser.toLowerCase() === 'none') &&
       (!activeUser || activeUser.toLowerCase() === 'none')
     ) {
+      // TODO: fix this!
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(true)
     }
   }, [group])

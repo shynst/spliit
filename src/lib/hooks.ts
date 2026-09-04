@@ -19,6 +19,8 @@ export function useMediaQuery(query: string): boolean {
     const matchMedia = window.matchMedia(query)
 
     // Triggered at the first client-side load and if query changes
+    // TODO: fix this!
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     handleChange()
 
     // Listen matchMedia
@@ -44,6 +46,8 @@ export function useMediaQuery(query: string): boolean {
 export function useBaseUrl() {
   const [baseUrl, setBaseUrl] = useState<string | null>(null)
   useEffect(() => {
+    // TODO: fix this!
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setBaseUrl(window.location.origin)
   }, [])
   return baseUrl

@@ -269,14 +269,18 @@ export function GroupForm({
                         <SelectValue placeholder="Select a participant" />
                       </SelectTrigger>
                       <SelectContent>
-                        {form
-                          .watch('participants')
-                          .filter((item) => item.name.length > 0)
-                          .map(({ name }) => (
-                            <SelectItem key={name} value={name}>
-                              {name}
-                            </SelectItem>
-                          ))}
+                        {
+                          // TODO: fix this!
+                          // eslint-disable-next-line react-hooks/incompatible-library
+                          form
+                            .watch('participants')
+                            .filter((item) => item.name.length > 0)
+                            .map(({ name }) => (
+                              <SelectItem key={name} value={name}>
+                                {name}
+                              </SelectItem>
+                            ))
+                        }
                       </SelectContent>
                     </Select>
                   </FormControl>

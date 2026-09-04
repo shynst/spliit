@@ -411,6 +411,8 @@ export function ExpenseForm({
                   <CategorySelector
                     categories={categories}
                     defaultValue={
+                      // TODO: fix this!
+                      // eslint-disable-next-line react-hooks/incompatible-library
                       form.watch(field.name) // may be overwritten externally
                     }
                     onValueChange={field.onChange}
