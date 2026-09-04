@@ -1,5 +1,6 @@
 'use client'
 import { cached } from '@/app/cached-functions'
+import { CalcNumberPopup } from '@/components/calc-number-popup'
 import { CategorySelector } from '@/components/category-selector'
 import { ExpenseDocumentsInput } from '@/components/expense-documents-input'
 import { SubmitButton } from '@/components/submit-button'
@@ -38,7 +39,7 @@ import { cn, getPaymentInfo } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Category, SplitMode } from '@prisma/client'
 import * as SelectPrimitive from '@radix-ui/react-select'
-import { ChevronDown, Save } from 'lucide-react'
+import { Calculator, ChevronDown, Save } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -299,7 +300,25 @@ export function ExpenseForm({
                 name="amount"
                 render={({ field: { onChange, ...field } }) => (
                   <FormItem className="flex-1">
-                    <FormLabel>Amount</FormLabel>
+                    <div className="flex mt-1">
+                      <FormLabel>Amount</FormLabel>
+                      <CalcNumberPopup
+                        value={field.value ?? ''}
+                        onChange={(result) =>
+                          onChange(enforceCurrencyPattern(String(result)))
+                        }
+                        trigger={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="default"
+                            className="h-5"
+                          >
+                            <Calculator className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
                     <FormControl>
                       <Input
                         className="text-base min-w-[80px]"
