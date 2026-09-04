@@ -123,7 +123,7 @@ export function getPaymentInfo(
   numMembers?: number,
 ) {
   const getName = (p: { id: string; name: string } | undefined, you: string) =>
-    p?.id !== activeUserId ? p?.name ?? 'someone' : you
+    p?.id !== activeUserId ? (p?.name ?? 'someone') : you
 
   const transactionFrom = getName(paidBy, 'You')
   const pFor = paidFor || []

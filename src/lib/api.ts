@@ -194,8 +194,7 @@ export async function updateExpense(
 
   const normalize = (
     expense:
-      | Awaited<ReturnType<typeof getCreateExpenseParams>>['data']
-      | APIExpense,
+      Awaited<ReturnType<typeof getCreateExpenseParams>>['data'] | APIExpense,
   ) =>
     expense && {
       ...expense,

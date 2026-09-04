@@ -99,16 +99,14 @@ export const expenseFormSchema = z
         }
       }),
     splitMode: z
-      .enum<
-        SplitMode,
-        [SplitMode, ...SplitMode[]]
-      >(Object.values(SplitMode) as [SplitMode, ...SplitMode[]])
+      .enum<SplitMode, [SplitMode, ...SplitMode[]]>(
+        Object.values(SplitMode) as [SplitMode, ...SplitMode[]],
+      )
       .default('EVENLY'),
     expenseType: z
-      .enum<
-        ExpenseType,
-        [ExpenseType, ...ExpenseType[]]
-      >(Object.values(ExpenseType) as [ExpenseType, ...ExpenseType[]])
+      .enum<ExpenseType, [ExpenseType, ...ExpenseType[]]>(
+        Object.values(ExpenseType) as [ExpenseType, ...ExpenseType[]],
+      )
       .default('EXPENSE'),
     documents: z
       .array(
