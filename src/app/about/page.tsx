@@ -14,8 +14,6 @@ export default function AboutPage() {
           <Link href="/groups">
             <Image
               src={img}
-              width={256}
-              height={256}
               className="w-52 h-52 sm:w-auto sm:h-auto"
               style={{ borderRadius: '50%' }}
               alt="Spliit"

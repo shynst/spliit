@@ -86,10 +86,10 @@ export default function RootLayout({
               <h1>
                 <Image
                   src="/logo-with-text.png"
-                  className="m-1 w-auto h-8 sm:h-auto"
+                  className="m-1 w-auto h-8 sm:h-12"
                   priority
-                  width={(35 * 522) / 180}
-                  height={35}
+                  width={522}
+                  height={180}
                   alt="Spliit"
                 />
               </h1>
