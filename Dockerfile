@@ -28,7 +28,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN apk add --no-cache openssl && \
     npm i -g pnpm && \
     pnpm i --prod --no-optional --ignore-scripts && \
-    pnpm --package="prisma@^5.22.0" dlx prisma generate
+    pnpm --package="prisma@^6.19.3" dlx prisma generate
 
 
 FROM node:24-alpine
@@ -36,13 +36,13 @@ FROM node:24-alpine
 WORKDIR /usr/app
 COPY prisma prisma
 COPY public public
-COPY next.config.js ./
+COPY next.config.js package.json ./
 COPY --from=base /usr/app/.next .next
 COPY --from=runtime-deps /usr/app/node_modules node_modules
 COPY --chmod=755 <<EOF entrypoint.sh
 #!/bin/sh
 set -euxo pipefail
-pnpm --package="prisma@^5.22.0" dlx prisma migrate deploy
+pnpm --package="prisma@^6.19.3" dlx prisma migrate deploy
 ./node_modules/.bin/next start
 EOF
 RUN apk add --no-cache openssl && npm i -g pnpm

@@ -1,4 +1,4 @@
-[<img alt="Spliit" height="60" src="https://github.com/spliit-app/spliit/blob/main/public/logo-with-text.png?raw=true" />](https://spliit.app)
+# Spliit
 
 Spliit is a free and open source alternative to Splitwise. You can either use the official instance at [Spliit.app](https://spliit.app), or deploy your own instance:
 
@@ -55,7 +55,7 @@ If you want to contribute financially and help us keep the application free and 
 1. Run `npm run build-image` to build the docker image from the Dockerfile
 2. Copy the file `container.env.example` as `container.env`
 3. Run `npm run start-container` to start the postgres and the spliit2 containers
-4. You can access the app by browsing to http://localhost:3000
+4. You can access the app by browsing to <http://localhost:3000>
 
 ## Opt-in features
 
