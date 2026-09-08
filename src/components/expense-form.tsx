@@ -685,6 +685,9 @@ export function ExpenseForm({
                                 case 'BY_AMOUNT':
                                   shares = formValues.amount / (pf.length || 1)
                                   break
+                                case 'BY_SHARES':
+                                  shares = 1
+                                  break
                                 default:
                                   value = 'EVENLY'
                                   shares = 1

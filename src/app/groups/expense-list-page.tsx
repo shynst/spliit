@@ -1,4 +1,3 @@
-import { cached } from '@/app/cached-functions'
 import { ActiveUserModal } from '@/app/groups/[groupId]/expenses/active-user-modal'
 import { ExpenseList } from '@/app/groups/expense-list'
 import { Button } from '@/components/ui/button'
@@ -19,8 +18,6 @@ type Props = { group: APIGroup; includeHistory: boolean }
 
 export async function ExpenseListPage({ group, includeHistory }: Props) {
   'use server'
-
-  const categories = await cached.getCategories()
 
   return (
     <>
