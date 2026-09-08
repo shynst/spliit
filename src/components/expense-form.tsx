@@ -237,6 +237,7 @@ export function ExpenseForm({
             </CardTitle>
             <Button
               className="sm:hidden px-3 py-0 !mt-0 w-6 h-6"
+              type="button"
               onClick={(e) => {
                 e.preventDefault()
                 setSMDescribe(!sm_describe)
@@ -492,6 +493,7 @@ export function ExpenseForm({
               {!paidForInvalid && (
                 <Button
                   variant="link"
+                  type="button"
                   className="p-0 before:content-['Show'] group-[[data-state=open]]:before:content-['Hide']"
                   onClick={(e) => {
                     e.preventDefault()
@@ -815,7 +817,7 @@ export function ExpenseForm({
               Save as New
             </SubmitButton>
           )}
-          <RouterButton variant="ghost" back>
+          <RouterButton type="button" variant="ghost" back>
             Cancel
           </RouterButton>
         </div>
