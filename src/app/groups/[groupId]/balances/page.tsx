@@ -9,15 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { APIExpenseBalance, getExpenseListByCurrency } from '@/lib/api'
-import {
-  Balances,
-  Reimbursement,
-  getBalances,
-  getPublicBalances,
-  getSuggestedReimbursements,
-  getTotalGroupSpending,
-} from '@/lib/balances'
+import { getBalancesByCurrency } from '@/lib/api'
+import { Reimbursement, getSuggestedReimbursements } from '@/lib/balances'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import * as React from 'react'
@@ -26,14 +19,6 @@ import * as React from 'react'
 
 export const metadata: Metadata = {
   title: 'Balances',
-}
-
-interface ExpenseBalances {
-  expenses: APIExpenseBalance[]
-  totalSpendings: number
-  balances: Balances
-  publicBalances: Balances
-  reimbursements: Reimbursement[]
 }
 
 type Props = { params: Promise<{ groupId: string }> }
@@ -45,25 +30,15 @@ export default async function GroupPage(props: Props) {
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
 
-  const expensesMap = new Map<string, ExpenseBalances>()
-  const currencyEx = await getExpenseListByCurrency(groupId)
+  const balanceMap = await getBalancesByCurrency(groupId)
+  const reimbursementMap = new Map<string, Reimbursement[]>()
 
-  currencyEx.forEach((expenses, currency) => {
-    const balances = getBalances(expenses)
-    const reimbursements = getSuggestedReimbursements(balances)
-    const publicBalances = getPublicBalances(reimbursements)
-
-    expensesMap.set(currency, {
-      expenses,
-      totalSpendings: getTotalGroupSpending(expenses),
-      balances,
-      reimbursements,
-      publicBalances,
-    })
+  balanceMap.forEach((balances, currency) => {
+    const r = getSuggestedReimbursements(balances)
+    if (r.length) reimbursementMap.set(currency, r)
   })
 
-  const expenseMapEntries = Array.from(expensesMap.entries())
-  const multiCurrencies = expenseMapEntries.length > 1
+  const multiCurrencies = balanceMap.size > 1
 
   const ListWithCurrency = ({ currency, children }: ListWithCurrencyProps) =>
     multiCurrencies ? (
@@ -88,33 +63,35 @@ export default async function GroupPage(props: Props) {
         </CardHeader>
         <CardContent>
           {(() => {
-            if (expenseMapEntries.length === 0) {
+            if (balanceMap.size === 0) {
               return (
                 <div className="text-sm">
                   Your group doesn’t contain any expenses.
                 </div>
               )
             }
-            const entries = expenseMapEntries.filter(
-              ([_, balances]) => balances.reimbursements.length > 0,
-            )
-            return entries.length > 0 ? (
-              entries.map(([currency, balances]) => (
-                <ListWithCurrency key={currency} currency={currency}>
-                  <BalancesList
-                    group={group}
-                    currency={currency}
-                    balances={balances.publicBalances}
-                  />
-                </ListWithCurrency>
-              ))
-            ) : (
+
+            return reimbursementMap.size == 0 ? (
               <div className="text-sm">All group balances are settled.</div>
+            ) : (
+              balanceMap
+                .entries()
+                .filter(([currency]) => reimbursementMap.has(currency))
+                .toArray()
+                .map(([currency, balances]) => (
+                  <ListWithCurrency key={currency} currency={currency}>
+                    <BalancesList
+                      group={group}
+                      currency={currency}
+                      balances={balances}
+                    />
+                  </ListWithCurrency>
+                ))
             )
           })()}
         </CardContent>
       </Card>
-      {expenseMapEntries.length > 0 && (
+      {balanceMap.size > 0 && (
         <>
           <Card>
             <CardHeader>
@@ -126,23 +103,23 @@ export default async function GroupPage(props: Props) {
             </CardHeader>
             <CardContent>
               {(() => {
-                const entries = expenseMapEntries.filter(
-                  ([_, balances]) => balances.reimbursements.length > 0,
-                )
-                return entries.length > 0 ? (
-                  entries.map(([currency, balances]) => (
-                    <ListWithCurrency key={currency} currency={currency}>
-                      <ReimbursementList
-                        group={group}
-                        currency={currency}
-                        reimbursements={balances.reimbursements}
-                      />
-                    </ListWithCurrency>
-                  ))
-                ) : (
+                return reimbursementMap.size == 0 ? (
                   <div className="text-sm">
                     Your group doesn’t need any reimbursement.
                   </div>
+                ) : (
+                  reimbursementMap
+                    .entries()
+                    .toArray()
+                    .map(([currency, reimbursements]) => (
+                      <ListWithCurrency key={currency} currency={currency}>
+                        <ReimbursementList
+                          group={group}
+                          currency={currency}
+                          reimbursements={reimbursements}
+                        />
+                      </ListWithCurrency>
+                    ))
                 )
               })()}
             </CardContent>
@@ -155,16 +132,18 @@ export default async function GroupPage(props: Props) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {expenseMapEntries.map(([currency, balances]) => (
-                <ListWithCurrency key={currency} currency={currency}>
-                  <Totals
-                    group={group}
-                    expenses={balances.expenses}
-                    currency={currency}
-                    totalSpendings={balances.totalSpendings}
-                  />
-                </ListWithCurrency>
-              ))}
+              {balanceMap
+                .entries()
+                .toArray()
+                .map(([currency, balances]) => (
+                  <ListWithCurrency key={currency} currency={currency}>
+                    <Totals
+                      group={group}
+                      currency={currency}
+                      balances={balances}
+                    />
+                  </ListWithCurrency>
+                ))}
             </CardContent>
           </Card>
         </>

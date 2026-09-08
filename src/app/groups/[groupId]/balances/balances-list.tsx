@@ -1,6 +1,6 @@
-import { APIGroup } from '@/lib/api'
-import { Balances } from '@/lib/balances'
+import { APIGroup, Balances } from '@/lib/api'
 import { cn, formatCurrency } from '@/lib/utils'
+import React from 'react'
 
 type Props = {
   group: APIGroup
@@ -10,13 +10,17 @@ type Props = {
 
 export function BalancesList({ group, currency, balances }: Props) {
   const maxBalance = Math.max(
-    ...Object.values(balances).map((b) => Math.abs(b.total)),
+    ...balances.values().map((b) => Math.abs(b.paidBy - b.paidFor)),
   )
 
   return (
     <div className="text-sm">
       {group.participants.map((participant) => {
-        const balance = balances[participant.id]?.total ?? 0
+        const b = balances.get(participant.id)
+        const balance = (b?.paidBy ?? 0) - (b?.paidFor ?? 0)
+        if (balance == 0)
+          return <React.Fragment key={participant.id}></React.Fragment>
+
         const isLeft = balance >= 0
         return (
           <div
@@ -30,19 +34,17 @@ export function BalancesList({ group, currency, balances }: Props) {
               <div className="absolute inset-0 p-2 z-20">
                 {formatCurrency(currency, balance)}
               </div>
-              {balance !== 0 && (
-                <div
-                  className={cn(
-                    'absolute top-1 h-7 z-10',
-                    isLeft
-                      ? 'bg-green-200 dark:bg-green-800 left-0 rounded-r-lg border border-green-300 dark:border-green-700'
-                      : 'bg-red-200 dark:bg-red-800 right-0 rounded-l-lg border  border-red-300 dark:border-red-700',
-                  )}
-                  style={{
-                    width: (Math.abs(balance) / maxBalance) * 100 + '%',
-                  }}
-                ></div>
-              )}
+              <div
+                className={cn(
+                  'absolute top-1 h-7 z-10',
+                  isLeft
+                    ? 'bg-green-200 dark:bg-green-800 left-0 rounded-r-lg border border-green-300 dark:border-green-700'
+                    : 'bg-red-200 dark:bg-red-800 right-0 rounded-l-lg border  border-red-300 dark:border-red-700',
+                )}
+                style={{
+                  width: (Math.abs(balance) / maxBalance) * 100 + '%',
+                }}
+              ></div>
             </div>
           </div>
         )

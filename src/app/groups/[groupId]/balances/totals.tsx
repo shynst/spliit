@@ -1,21 +1,23 @@
 'use client'
 import { cached } from '@/app/cached-functions'
-import { APIExpenseBalance, APIGroup } from '@/lib/api'
-import {
-  getTotalActiveUserPaidFor,
-  getTotalActiveUserShare,
-} from '@/lib/balances'
+import { APIGroup, Balances } from '@/lib/api'
 import { cn, formatCurrency } from '@/lib/utils'
 
 type Props = {
   group: APIGroup
-  expenses: APIExpenseBalance[]
   currency: string
-  totalSpendings: number
+  balances: Balances
 }
 
-export function Totals({ group, expenses, currency, totalSpendings }: Props) {
+export function Totals({ group, currency, balances }: Props) {
   const activeUser = cached.getActiveUser(group.id)
+
+  const totalSpendings = balances
+    .values()
+    .reduce((sum, v) => sum + v.groupAmount, 0)
+
+  const balance =
+    activeUser && activeUser !== 'None' ? balances.get(activeUser) : undefined
 
   return (
     <>
@@ -26,17 +28,17 @@ export function Totals({ group, expenses, currency, totalSpendings }: Props) {
         colored={false}
       />
 
-      {activeUser && activeUser !== 'None' && (
+      {balance && (
         <>
           <StatItem
             label="Your $balance"
-            amount={getTotalActiveUserPaidFor(activeUser, expenses)}
+            amount={balance.groupAmount}
             currency={currency}
             colored={true}
           />
           <StatItem
             label="Your share"
-            amount={getTotalActiveUserShare(activeUser, expenses)}
+            amount={balance.groupAmount + balance.paidFor - balance.paidBy}
             currency={currency}
             colored={true}
           />

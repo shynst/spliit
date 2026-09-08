@@ -1,7 +1,6 @@
 'use client'
 import { CategoryExpenseIcon } from '@/components/category-icon'
 import { APIExpense, APIGroup } from '@/lib/api'
-import { getBalances } from '@/lib/balances'
 import { cn, formatCurrency, getPaymentString } from '@/lib/utils'
 import { ChevronRight, HistoryIcon, MessageSquareText } from 'lucide-react'
 import { useMemo } from 'react'
@@ -12,6 +11,27 @@ type Props = {
   activeUserId: string | null
   numMembers: number
   onClick: () => void
+}
+
+function getExpenseBalance(userId: string | null, expense: APIExpense) {
+  if (!userId || expense.expenseType === 'REIMBURSEMENT') return 0
+
+  const eSign = expense.expenseType === 'INCOME' ? -1 : 1
+  let balance = expense.paidById === userId ? eSign * expense.amount : 0
+
+  const evenly = expense.splitMode === 'EVENLY'
+  const pf = expense.paidFor.find((x) => x.participant.id === userId)
+  const shares = pf ? (evenly ? 1 : pf.shares) : 0
+  if (shares) {
+    const totalShares =
+      expense.splitMode === 'EVENLY'
+        ? expense.paidFor.length
+        : expense.paidFor.reduce((sum, pf) => sum + pf.shares, 0)
+    if (totalShares > 0)
+      balance -= (eSign * expense.amount * shares) / totalShares
+  }
+
+  return balance
 }
 
 export function ExpenseCard({
@@ -29,11 +49,10 @@ export function ExpenseCard({
     [activeUserId, expense, numMembers],
   )
 
-  const balance = useMemo(() => {
-    return activeUserId && expense.expenseType !== 'REIMBURSEMENT'
-      ? getBalances([expense])?.[activeUserId]?.total || 0
-      : 0
-  }, [activeUserId, expense])
+  const balance = useMemo(
+    () => getExpenseBalance(activeUserId, expense),
+    [activeUserId, expense],
+  )
 
   const currency = expense.currency
 

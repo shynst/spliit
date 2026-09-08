@@ -12,10 +12,6 @@ export type APIExpense = Awaited<ReturnType<typeof createExpense>> & {
   nextVersion?: APIExpense | null | undefined
   createdBy?: { name: string } | null | undefined
 }
-export type APIExpenseBalance = Pick<
-  Awaited<ReturnType<typeof createExpense>>,
-  'amount' | 'paidBy' | 'paidFor' | 'splitMode' | 'expenseType'
->
 
 export { randomId }
 
@@ -304,40 +300,6 @@ export async function getExpenseList(
   })
 }
 
-export async function getExpenseListByCurrency(groupId: string) {
-  const select = {
-    amount: true,
-    paidBy: { select: { id: true, name: true } },
-    paidFor: {
-      select: {
-        participant: { select: { id: true, name: true } },
-        shares: true,
-      },
-    },
-    splitMode: true,
-    expenseType: true,
-  }
-  const orderBy = [
-    { expenseDate: 'desc' } as const,
-    { createdAt: 'desc' } as const,
-  ]
-
-  const result = new Map<string, APIExpenseBalance[]>()
-
-  for (const currency of await getUsedCurrencies(groupId)) {
-    result.set(
-      currency,
-      await prisma.expense.findMany({
-        select,
-        where: { groupId, currency, expenseState: 'CURRENT' },
-        orderBy,
-      }),
-    )
-  }
-
-  return result
-}
-
 export async function getExpenseCount(
   groupId: string,
   options?: { includeHistory?: boolean },
@@ -410,6 +372,88 @@ export async function getExpensesParticipants(groupId: string) {
       ]),
     ),
   )
+}
+
+export interface UserBalance {
+  groupAmount: number
+  paidBy: number
+  paidFor: number
+}
+export type Balances = Map<string, UserBalance>
+
+export async function getBalancesByCurrency(groupId: string) {
+  const balances = new Map<string, Balances>()
+
+  const addPayments = async (
+    k: keyof UserBalance,
+    payments: Promise<
+      {
+        id: string
+        currency: string
+        sum: number
+      }[]
+    >,
+  ) =>
+    (await payments).forEach(({ id, currency, sum }) => {
+      const b = balances.get(currency) ?? new Map()
+      const p = b.get(id) ?? { groupAmount: 0, paidBy: 0, paidFor: 0 }
+      p[k] += Number(sum)
+      if (k === 'paidBy') p.groupAmount = p[k]
+      balances.set(currency, b.set(id, p))
+    })
+
+  // add payments to paidBy and groupAmount
+  await addPayments(
+    'paidBy',
+    prisma.$queryRaw`SELECT paidById AS id, currency, SUM(amount * IF(expenseType='INCOME', -1, 1)) AS sum
+        FROM Expense
+        WHERE Expense.groupId = ${groupId} AND expenseState='CURRENT'
+        GROUP BY currency, paidById`,
+  )
+
+  // add payments to paidFor
+  await addPayments(
+    'paidFor',
+    prisma.$queryRaw`SELECT id, currency, IF(total_shares > 0, SUM(amount * shares / total_shares), 0) AS sum
+        FROM (
+            SELECT
+                participantId AS id,
+                IF(expenseType='INCOME', -amount, amount) AS amount,
+                currency,
+                IF(splitMode = 'EVENLY', 1, shares) AS shares,
+                IF(splitMode = 'EVENLY',
+                  COUNT(shares) OVER (PARTITION BY expenseId),
+                  SUM(shares) OVER (PARTITION BY expenseId)
+                ) AS total_shares
+            FROM ExpensePaidFor epf
+            JOIN Expense e ON epf.expenseId = e.id
+            WHERE groupId = ${groupId} AND expenseState = 'CURRENT'
+        ) x
+        GROUP BY id, currency`,
+  )
+
+  // subtract reimbursements from groupAmount
+  await addPayments(
+    'groupAmount',
+    prisma.$queryRaw`SELECT id, currency, IF(total_shares > 0, -SUM(amount * shares / total_shares), 0) AS sum
+        FROM (
+            SELECT
+                participantId AS id,
+                IF(expenseType='INCOME', -amount, amount) AS amount,
+                currency,
+                IF(splitMode = 'EVENLY', 1, shares) AS shares,
+                IF(splitMode = 'EVENLY',
+                  COUNT(shares) OVER (PARTITION BY expenseId),
+                  SUM(shares) OVER (PARTITION BY expenseId)
+                ) AS total_shares
+            FROM ExpensePaidFor epf
+            JOIN Expense e ON epf.expenseId = e.id
+            WHERE groupId = ${groupId} AND expenseState = 'CURRENT' AND expenseType = 'REIMBURSEMENT'
+        ) x
+        GROUP BY id, currency`,
+  )
+
+  return balances
 }
 
 export async function getCategories() {
