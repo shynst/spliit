@@ -6,6 +6,7 @@ import {
   getRecentGroups,
   getStarredGroups,
 } from '@/app/groups/recent-groups-helpers'
+import { PageTitle } from '@/components/page-title-context'
 import { Button } from '@/components/ui/button'
 import { getGroupsDetails } from '@/lib/api'
 import { Loader2 } from 'lucide-react'
@@ -176,10 +177,9 @@ function GroupsPage({
 }: PropsWithChildren<{ reload: () => void }>) {
   return (
     <>
+      <PageTitle title="My groups" />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <h1 className="font-bold text-2xl flex-1">
-          <Link href="/groups">My groups</Link>
-        </h1>
+        <h1 className="font-bold text-2xl flex-1 max-sm:hidden">My groups</h1>
         <div className="flex gap-2">
           <AddGroupByUrlButton reload={reload} />
           <Button asChild>

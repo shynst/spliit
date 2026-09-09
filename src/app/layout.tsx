@@ -1,14 +1,11 @@
 import { ApplePwaSplash } from '@/app/apple-pwa-splash'
+import { Header } from '@/components/header'
+import { PageTitleProvider } from '@/components/page-title-context'
 import { ProgressBar } from '@/components/progress-bar'
 import { ThemeProvider } from '@/components/theme-provider'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/toaster'
 import { env } from '@/lib/env'
-import { InfoCircledIcon } from '@radix-ui/react-icons'
 import type { Metadata, Viewport } from 'next'
-import Image from 'next/image'
-import Link from 'next/link'
 import { Suspense } from 'react'
 import './globals.css'
 
@@ -27,15 +24,6 @@ export const metadata: Metadata = {
     images: `/banner.png`,
     type: 'website',
     url: '/',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    creator: '@scastiel',
-    site: '@scastiel',
-    images: `/banner.png`,
-    title: 'Spliit · Share Expenses with Friends & Family',
-    description:
-      'Spliit is a minimalist web application to share expenses with friends and family. No ads, no account, no problem.',
   },
   appleWebApp: {
     capable: true,
@@ -78,46 +66,10 @@ export default function RootLayout({
           <Suspense>
             <ProgressBar />
           </Suspense>
-          <header className="fixed top-0 left-0 right-0 h-12 sm:h-16 flex justify-between bg-white dark:bg-gray-950 bg-opacity-50 dark:bg-opacity-50 p-2 border-b backdrop-blur-sm z-50">
-            <Link
-              className="flex items-center gap-2 hover:scale-105 transition-transform"
-              href="/"
-            >
-              <h1>
-                <Image
-                  src="/logo-with-text.png"
-                  className="m-1 w-auto h-8 sm:h-12"
-                  priority
-                  width={522}
-                  height={180}
-                  alt="Spliit"
-                />
-              </h1>
-            </Link>
-            <div role="navigation" aria-label="Menu" className="flex">
-              <ul className="flex items-center text-sm">
-                <li>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    asChild
-                    className="text-primary"
-                  >
-                    <Link href="/about">
-                      <InfoCircledIcon className="h-[1.2rem] w-[1.2rem]" />
-                      <span className="sr-only">About</span>
-                    </Link>
-                  </Button>
-                </li>
-                <li>
-                  <ThemeToggle />
-                </li>
-              </ul>
-            </div>
-          </header>
-
-          <div className="pt-16 flex-1 flex flex-col">{children}</div>
-
+          <PageTitleProvider>
+            <Header />
+            <div className="pt-16 flex-1 flex flex-col">{children}</div>
+          </PageTitleProvider>
           <Toaster />
         </ThemeProvider>
       </body>

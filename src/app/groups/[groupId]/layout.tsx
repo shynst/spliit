@@ -1,8 +1,8 @@
 import { cached } from '@/app/cached-functions'
 import { GroupTabs } from '@/app/groups/[groupId]/group-tabs'
 import { SaveGroupLocally } from '@/app/groups/[groupId]/save-recent-group'
+import { PageTitle } from '@/components/page-title-context'
 import { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PropsWithChildren, Suspense } from 'react'
 
@@ -34,10 +34,9 @@ export default async function GroupLayout(props: PropsWithChildren<Props>) {
 
   return (
     <>
+      <PageTitle title={group.name} />
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-        <h1 className="font-bold text-2xl">
-          <Link href={`/groups/${groupId}`}>{group.name}</Link>
-        </h1>
+        <h1 className="font-bold text-2xl max-sm:hidden">{group.name}</h1>
 
         <Suspense>
           <GroupTabs groupId={groupId} />
