@@ -41,7 +41,7 @@ import { Category, SplitMode } from '@prisma/client'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { Calculator, ChevronDown, Save } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { match } from 'ts-pattern'
 import { RouterButton } from './router-button'
@@ -196,8 +196,6 @@ export function ExpenseForm({
             members.length,
           ).transactionTo)
 
-  const [sm_describe, setSMDescribe] = useState(false)
-
   const FormDescription = ({
     fieldName,
     className,
@@ -206,23 +204,12 @@ export function ExpenseForm({
     !!(
       fieldName &&
       form.getFieldState(fieldName as keyof ExpenseFormValues).invalid
-    ) || (
-      <FDescription
-        className={cn(className, !sm_describe && 'max-sm:hidden')}
-        {...props}
-      />
-    )
-
-  const scrollRef = useRef<HTMLFormElement>(null)
-  useEffect(() => {
-    const r = scrollRef.current
-    if (r && window.innerWidth < 640) r.scrollIntoView({ behavior: 'smooth' })
-  }, [])
+    ) || <FDescription {...props} />
 
   return (
     <Form {...form}>
       <form
-        ref={scrollRef}
+        className="pb-8"
         onSubmit={form.handleSubmit((values) => {
           if (activeUser && activeUser !== 'None') {
             localStorage?.setItem(activeUser + '-lastCurrency', values.currency)
@@ -235,16 +222,6 @@ export function ExpenseForm({
             <CardTitle>
               {(isCreate ? 'Create ' : 'Edit ') + s_transaction}
             </CardTitle>
-            <Button
-              className="sm:hidden px-3 py-0 !mt-0 w-6 h-6"
-              type="button"
-              onClick={(e) => {
-                e.preventDefault()
-                setSMDescribe(!sm_describe)
-              }}
-            >
-              ?
-            </Button>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-2 sm:gap-6">
             <FormField
@@ -255,7 +232,7 @@ export function ExpenseForm({
                   <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Monday evening restaurant"
+                      placeholder="Flight to Thailand"
                       className="text-base"
                       {...field}
                       onBlur={async () => {
@@ -324,7 +301,7 @@ export function ExpenseForm({
                       />
                     </FormControl>
                     <FormDescription fieldName={field.name}>
-                      Enter the amount
+                      Enter amount
                       <span className="max-sm:hidden">{' ' + s_paid}</span>.
                     </FormDescription>
                     <FormMessage />
@@ -470,7 +447,7 @@ export function ExpenseForm({
                     </SelectContent>
                   </Select>
                   <FormDescription fieldName={field.name}>
-                    Person who {s_paid} the {s_transaction}.
+                    Who {s_paid} the {s_transaction}?
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -494,7 +471,7 @@ export function ExpenseForm({
                 <Button
                   variant="link"
                   type="button"
-                  className="p-0 before:content-['Show'] group-[[data-state=open]]:before:content-['Hide']"
+                  className="px-0 max-sm:h-5 before:content-['Show'] max-sm:group-[[data-state=open]]:mb-4 group-[[data-state=open]]:before:content-['Hide']"
                   onClick={(e) => {
                     e.preventDefault()
                     setShowOptions(!showOptions)

@@ -68,7 +68,9 @@ export default function RootLayout({
           </Suspense>
           <PageTitleProvider>
             <Header />
-            <div className="pt-16 flex-1 flex flex-col">{children}</div>
+            <div className="pt-12 sm:pt-16 flex-1 flex flex-col">
+              {children}
+            </div>
           </PageTitleProvider>
           <Toaster />
         </ThemeProvider>

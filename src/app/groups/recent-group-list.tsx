@@ -178,7 +178,7 @@ function GroupsPage({
   return (
     <>
       <PageTitle title="My groups" />
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="max-sm:mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h1 className="font-bold text-2xl flex-1 max-sm:hidden">My groups</h1>
         <div className="flex gap-2">
           <AddGroupByUrlButton reload={reload} />

@@ -54,7 +54,7 @@ export default async function GroupPage(props: Props) {
 
   return (
     <>
-      <Card>
+      <Card className="max-sm:mb-0">
         <CardHeader>
           <CardTitle>Balances</CardTitle>
           <CardDescription>
@@ -93,7 +93,7 @@ export default async function GroupPage(props: Props) {
       </Card>
       {balanceMap.size > 0 && (
         <>
-          <Card>
+          <Card className="max-sm:mt-0 max-sm:mb-0">
             <CardHeader>
               <CardTitle>Suggested reimbursements</CardTitle>
               <CardDescription>
@@ -124,7 +124,7 @@ export default async function GroupPage(props: Props) {
               })()}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="max-sm:mt-0">
             <CardHeader>
               <CardTitle>Totals</CardTitle>
               <CardDescription>
