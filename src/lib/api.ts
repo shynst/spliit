@@ -357,21 +357,17 @@ export async function getExpense(
 }
 
 export async function getExpensesParticipants(groupId: string) {
-  const expenses = await prisma.expense.findMany({
-    where: { groupId },
-    select: {
-      paidBy: { select: { id: true } },
-      paidFor: { select: { participantId: true } },
-    },
-  })
-  return Array.from(
-    new Set(
-      expenses.flatMap((e) => [
-        e.paidBy.id,
-        ...e.paidFor.map((pf) => pf.participantId),
-      ]),
-    ),
-  )
+  let q: { id: string }[] =
+    await prisma.$queryRaw`SELECT DISTINCT paidById AS id FROM Expense WHERE groupId = ${groupId}`
+  const ids = q.map((x) => x.id)
+
+  q =
+    await prisma.$queryRaw`SELECT DISTINCT participantId AS id FROM ExpensePaidFor epf
+              JOIN Expense e ON epf.expenseId = e.id
+              WHERE groupId = ${groupId}`
+  ids.push(...q.map((x) => x.id))
+
+  return Array.from(new Set(ids))
 }
 
 export interface UserBalance {
