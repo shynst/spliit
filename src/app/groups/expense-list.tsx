@@ -66,13 +66,15 @@ export function ExpenseList({
   useEffect(() => {
     if (includeHistory) {
       const sp = new URLSearchParams(searchParams)
+      const oldQquery = sp.size > 0 ? '?' + sp.toString() : ''
+
       if (viewAllEvents && showSearchBar) sp.set('v', 'all')
       else sp.delete('v')
       const query = sp.size > 0 ? '?' + sp.toString() : ''
 
-      history.replaceState(null, '', window.location.pathname + query)
+      if (query !== oldQquery) router.replace(window.location.pathname + query)
     }
-  }, [includeHistory, searchParams, showSearchBar, viewAllEvents])
+  }, [includeHistory, router, searchParams, showSearchBar, viewAllEvents])
 
   useEffect(() => {
     let userId = null as string | null
