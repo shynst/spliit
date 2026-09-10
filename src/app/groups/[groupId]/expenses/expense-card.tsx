@@ -54,7 +54,7 @@ export function ExpenseCard({
     [activeUserId, expense],
   )
 
-  const currency = expense.currency
+  const currency = expense.currency.symbol
 
   return (
     <div

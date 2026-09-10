@@ -1,13 +1,14 @@
-import { Participant } from '@prisma/client'
+import { Currency, Participant } from '@prisma/client'
 import { Balances } from './api'
 
 export type Reimbursement = {
   from: Participant['id']
   to: Participant['id']
   amount: number
+  currency: Currency
 }
 
-type BalanceItem = { participantId: string; total: number }
+type BalanceItem = { participantId: string; amount: number; currency: Currency }
 
 /**
  * A comparator that is stable across reimbursements.
@@ -19,9 +20,9 @@ function compareBalancesForReimbursements(
   b2: BalanceItem,
 ): number {
   // positive balances come before negative balances
-  if (b1.total > 0 && 0 > b2.total) {
+  if (b1.amount > 0 && 0 > b2.amount) {
     return -1
-  } else if (b2.total > 0 && 0 > b1.total) {
+  } else if (b2.amount > 0 && 0 > b1.amount) {
     return 1
   }
   // if signs match, sort based on user id
@@ -33,33 +34,36 @@ export function getSuggestedReimbursements(
 ): Reimbursement[] {
   const balancesArray = balances
     .entries()
-    .map(([participantId, { paidBy, paidFor }]) => ({
+    .map(([participantId, { paidBy, paidFor, currency }]) => ({
       participantId,
-      total: paidBy - paidFor,
+      amount: paidBy - paidFor,
+      currency,
     }))
-    .filter((b) => b.total !== 0)
+    .filter((b) => b.amount !== 0)
     .toArray()
   balancesArray.sort(compareBalancesForReimbursements)
   const reimbursements: Reimbursement[] = []
   while (balancesArray.length > 1) {
     const first = balancesArray[0]
     const last = balancesArray[balancesArray.length - 1]
-    const amount = first.total + last.total
-    if (first.total > -last.total) {
+    const amount = first.amount + last.amount
+    if (first.amount > -last.amount) {
       reimbursements.push({
         from: last.participantId,
         to: first.participantId,
-        amount: -last.total,
+        amount: -last.amount,
+        currency: first.currency,
       })
-      first.total = amount
+      first.amount = amount
       balancesArray.pop()
     } else {
       reimbursements.push({
         from: last.participantId,
         to: first.participantId,
-        amount: first.total,
+        amount: first.amount,
+        currency: last.currency,
       })
-      last.total = amount
+      last.amount = amount
       balancesArray.shift()
     }
   }

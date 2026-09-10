@@ -2,13 +2,9 @@ import { APIGroup, Balances } from '@/lib/api'
 import { cn, formatCurrency } from '@/lib/utils'
 import React from 'react'
 
-type Props = {
-  group: APIGroup
-  currency: string
-  balances: Balances
-}
+type Props = { group: APIGroup; balances: Balances }
 
-export function BalancesList({ group, currency, balances }: Props) {
+export function BalancesList({ group, balances }: Props) {
   const maxBalance = Math.max(
     ...balances.values().map((b) => Math.abs(b.paidBy - b.paidFor)),
   )
@@ -32,7 +28,7 @@ export function BalancesList({ group, currency, balances }: Props) {
             </div>
             <div className={cn('w-1/2 relative', isLeft || 'text-right')}>
               <div className="absolute inset-0 p-2 z-20">
-                {formatCurrency(currency, balance)}
+                {formatCurrency(b!.currency.symbol, balance)}
               </div>
               <div
                 className={cn(

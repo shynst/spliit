@@ -40,17 +40,21 @@ export default async function GroupPage(props: Props) {
 
   const multiCurrencies = balanceMap.size > 1
 
-  const ListWithCurrency = ({ currency, children }: ListWithCurrencyProps) =>
-    multiCurrencies ? (
+  const ListWithCurrency = ({ currency, children }: ListWithCurrencyProps) => {
+    const currencyName =
+      balanceMap.get(currency)?.values().next().value?.currency.name || currency
+
+    return multiCurrencies ? (
       <div className="ml-4">
         <p className="text-muted-foreground text-xs font-semibold border-b -ml-4 mb-4">
-          Amounts in {currency}
+          Amounts in {currencyName}
         </p>
         {children}
       </div>
     ) : (
       <div>{children}</div>
     )
+  }
 
   return (
     <>
@@ -80,11 +84,7 @@ export default async function GroupPage(props: Props) {
                 .toArray()
                 .map(([currency, balances]) => (
                   <ListWithCurrency key={currency} currency={currency}>
-                    <BalancesList
-                      group={group}
-                      currency={currency}
-                      balances={balances}
-                    />
+                    <BalancesList group={group} balances={balances} />
                   </ListWithCurrency>
                 ))
             )
@@ -115,7 +115,6 @@ export default async function GroupPage(props: Props) {
                       <ListWithCurrency key={currency} currency={currency}>
                         <ReimbursementList
                           group={group}
-                          currency={currency}
                           reimbursements={reimbursements}
                         />
                       </ListWithCurrency>
@@ -137,11 +136,7 @@ export default async function GroupPage(props: Props) {
                 .toArray()
                 .map(([currency, balances]) => (
                   <ListWithCurrency key={currency} currency={currency}>
-                    <Totals
-                      group={group}
-                      currency={currency}
-                      balances={balances}
-                    />
+                    <Totals group={group} balances={balances} />
                   </ListWithCurrency>
                 ))}
             </CardContent>

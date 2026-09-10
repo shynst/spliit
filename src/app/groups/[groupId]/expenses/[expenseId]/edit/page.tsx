@@ -1,6 +1,11 @@
 import { cached } from '@/app/cached-functions'
 import { ExpenseForm } from '@/components/expense-form'
-import { createExpense, getExpense, updateExpense } from '@/lib/api'
+import {
+  createExpense,
+  getExpense,
+  getSortedCurrencies,
+  updateExpense,
+} from '@/lib/api'
 import { getRuntimeFeatureFlags } from '@/lib/featureFlags'
 import { expenseFormSchema } from '@/lib/schemas'
 import { Metadata } from 'next'
@@ -23,6 +28,7 @@ export default async function EditExpensePage(props: {
   const expense = await getExpense(expenseId)
   if (!expense) notFound()
   const categories = await cached.getCategories()
+  const currencies = await getSortedCurrencies(groupId)
 
   async function updateOrCreateAction(
     createNew: boolean,
@@ -46,6 +52,7 @@ export default async function EditExpensePage(props: {
         group={group}
         expense={expense}
         categories={categories}
+        currencies={currencies}
         onSubmit={updateOrCreateAction}
         runtimeFeatureFlags={await getRuntimeFeatureFlags()}
       />

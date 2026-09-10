@@ -12,7 +12,7 @@ import { ChevronRight, Sparkles } from 'lucide-react'
 const getAmount = (expense: APIExpense | undefined) =>
   expense &&
   formatCurrency(
-    expense.currency,
+    expense.currency.symbol,
     (expense.expenseType === 'INCOME' ? -1 : 1) * expense.amount,
   )
 

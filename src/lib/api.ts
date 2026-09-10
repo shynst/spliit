@@ -3,6 +3,7 @@
 import { cached } from '@/app/cached-functions'
 import { prisma } from '@/lib/prisma'
 import { ExpenseFormValues, GroupFormValues } from '@/lib/schemas'
+import { Currency } from '@prisma/client'
 import equal from 'fast-deep-equal'
 import { nanoid as randomId } from 'nanoid'
 
@@ -19,6 +20,7 @@ const groupIncludeParams = {
   participants: { select: { id: true, name: true } },
 }
 const expenseIncludeParams = {
+  currency: { select: { code: true, symbol: true } },
   paidBy: { select: { id: true, name: true } },
   paidFor: {
     select: {
@@ -109,15 +111,23 @@ export async function getGroup(groupId: string): Promise<APIGroup | null> {
   })
 }
 
-export async function getUsedCurrencies(groupId: string): Promise<string[]> {
-  return (
-    await prisma.expense.findMany({
-      select: { currency: true },
-      distinct: 'currency',
-      where: { groupId, expenseState: 'CURRENT' },
-      orderBy: { currency: 'asc' },
-    })
-  ).map((e) => e.currency)
+export async function getSortedCurrencies(groupId: string) {
+  const usedCurrencies: { code: string; symbol: string; name: string }[] =
+    await prisma.$queryRaw`SELECT code, symbol, name
+      FROM (
+        SELECT code, symbol, name, MAX(createdAt) AS sort FROM Currency
+        JOIN Expense e ON code = e.currencyCode
+        WHERE e.groupId = ${groupId} AND e.expenseState = 'CURRENT'
+        GROUP BY code
+      ) t
+      ORDER BY sort DESC`
+
+  const unusedCurrencies = await prisma.currency.findMany({
+    where: { code: { not: { in: usedCurrencies.map((x) => x.code) } } },
+    orderBy: { name: 'asc' },
+  })
+
+  return [...usedCurrencies, ...unusedCurrencies]
 }
 
 async function getCreateExpenseParams(
@@ -145,7 +155,7 @@ async function getCreateExpenseParams(
       expenseDate: expenseFormValues.expenseDate,
       categoryId: expenseFormValues.category,
       amount: expenseFormValues.amount,
-      currency: expenseFormValues.currency,
+      currencyCode: expenseFormValues.currency,
       title: expenseFormValues.title.trim(),
       paidById: expenseFormValues.paidBy,
       splitMode: expenseFormValues.splitMode,
@@ -374,48 +384,61 @@ export interface UserBalance {
   groupAmount: number
   paidBy: number
   paidFor: number
+  currency: Currency
 }
 export type Balances = Map<string, UserBalance>
 
 export async function getBalancesByCurrency(groupId: string) {
   const balances = new Map<string, Balances>()
 
+  const currencyMap = new Map<string, { symbol: string; name: string }>()
+  const c = await prisma.currency.findMany()
+  c.forEach(({ code, symbol, name }) => currencyMap.set(code, { symbol, name }))
+
   const addPayments = async (
-    k: keyof UserBalance,
+    k: keyof Omit<UserBalance, 'currency'>,
     payments: Promise<
       {
         id: string
-        currency: string
+        currencyCode: string
         sum: number
       }[]
     >,
   ) =>
-    (await payments).forEach(({ id, currency, sum }) => {
-      const b = balances.get(currency) ?? new Map()
-      const p = b.get(id) ?? { groupAmount: 0, paidBy: 0, paidFor: 0 }
+    (await payments).forEach(({ id, currencyCode, sum }) => {
+      const b = balances.get(currencyCode) ?? new Map()
+      const p = b.get(id) ?? {
+        groupAmount: 0,
+        paidBy: 0,
+        paidFor: 0,
+        currency: {
+          code: currencyCode,
+          ...(currencyMap.get(currencyCode) || { symbol: '?', name: '?' }),
+        },
+      }
       p[k] += Number(sum)
       if (k === 'paidBy') p.groupAmount = p[k]
-      balances.set(currency, b.set(id, p))
+      balances.set(currencyCode, b.set(id, p))
     })
 
   // add payments to paidBy and groupAmount
   await addPayments(
     'paidBy',
-    prisma.$queryRaw`SELECT paidById AS id, currency, SUM(amount * IF(expenseType='INCOME', -1, 1)) AS sum
+    prisma.$queryRaw`SELECT paidById AS id, currencyCode, SUM(amount * IF(expenseType='INCOME', -1, 1)) AS sum
         FROM Expense
         WHERE Expense.groupId = ${groupId} AND expenseState='CURRENT'
-        GROUP BY currency, paidById`,
+        GROUP BY currencyCode, paidById`,
   )
 
   // add payments to paidFor
   await addPayments(
     'paidFor',
-    prisma.$queryRaw`SELECT id, currency, IF(total_shares > 0, SUM(amount * shares / total_shares), 0) AS sum
+    prisma.$queryRaw`SELECT id, currencyCode, IF(total_shares > 0, SUM(amount * shares / total_shares), 0) AS sum
         FROM (
             SELECT
                 participantId AS id,
                 IF(expenseType='INCOME', -amount, amount) AS amount,
-                currency,
+                currencyCode,
                 IF(splitMode = 'EVENLY', 1, shares) AS shares,
                 IF(splitMode = 'EVENLY',
                   COUNT(shares) OVER (PARTITION BY expenseId),
@@ -425,18 +448,18 @@ export async function getBalancesByCurrency(groupId: string) {
             JOIN Expense e ON epf.expenseId = e.id
             WHERE groupId = ${groupId} AND expenseState = 'CURRENT'
         ) x
-        GROUP BY id, currency`,
+        GROUP BY id, currencyCode`,
   )
 
   // subtract reimbursements from groupAmount
   await addPayments(
     'groupAmount',
-    prisma.$queryRaw`SELECT id, currency, IF(total_shares > 0, -SUM(amount * shares / total_shares), 0) AS sum
+    prisma.$queryRaw`SELECT id, currencyCode, IF(total_shares > 0, -SUM(amount * shares / total_shares), 0) AS sum
         FROM (
             SELECT
                 participantId AS id,
                 IF(expenseType='INCOME', -amount, amount) AS amount,
-                currency,
+                currencyCode,
                 IF(splitMode = 'EVENLY', 1, shares) AS shares,
                 IF(splitMode = 'EVENLY',
                   COUNT(shares) OVER (PARTITION BY expenseId),
@@ -446,7 +469,7 @@ export async function getBalancesByCurrency(groupId: string) {
             JOIN Expense e ON epf.expenseId = e.id
             WHERE groupId = ${groupId} AND expenseState = 'CURRENT' AND expenseType = 'REIMBURSEMENT'
         ) x
-        GROUP BY id, currency`,
+        GROUP BY id, currencyCode`,
   )
 
   return balances

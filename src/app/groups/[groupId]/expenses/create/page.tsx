@@ -1,6 +1,6 @@
 import { cached } from '@/app/cached-functions'
 import { ExpenseForm } from '@/components/expense-form'
-import { createExpense } from '@/lib/api'
+import { createExpense, getSortedCurrencies } from '@/lib/api'
 import { getRuntimeFeatureFlags } from '@/lib/featureFlags'
 import { expenseFormSchema } from '@/lib/schemas'
 import { Metadata } from 'next'
@@ -21,6 +21,7 @@ export default async function ExpensePage(props: {
   const group = await cached.getGroup(groupId)
   if (!group) notFound()
   const categories = await cached.getCategories()
+  const currencies = await getSortedCurrencies(groupId)
 
   async function createExpenseAction(
     _createNew: boolean,
@@ -38,6 +39,7 @@ export default async function ExpensePage(props: {
       <ExpenseForm
         group={group}
         categories={categories}
+        currencies={currencies}
         onSubmit={createExpenseAction}
         runtimeFeatureFlags={await getRuntimeFeatureFlags()}
       />

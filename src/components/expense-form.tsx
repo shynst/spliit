@@ -32,12 +32,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { APIExpense, APIGroup, randomId } from '@/lib/api'
-import { currencies } from '@/lib/currencies'
 import { RuntimeFeatureFlags } from '@/lib/featureFlags'
 import { ExpenseFormValues, expenseFormSchema } from '@/lib/schemas'
 import { cn, getPaymentInfo } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Category, SplitMode } from '@prisma/client'
+import { Category, Currency, SplitMode } from '@prisma/client'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { Calculator, ChevronDown, Save } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -51,6 +50,7 @@ export type Props = {
   group: APIGroup
   expense?: APIExpense
   categories: Category[]
+  currencies: Currency[]
   onSubmit: (
     createNew: boolean,
     values: ExpenseFormValues,
@@ -82,6 +82,7 @@ export function ExpenseForm({
   group,
   expense,
   categories,
+  currencies,
   onSubmit,
   runtimeFeatureFlags,
 }: Props) {
@@ -101,7 +102,7 @@ export function ExpenseForm({
           title: expense.title,
           expenseDate: expense.expenseDate ?? new Date(),
           amount: String(expense.amount / 100) as unknown as number, // hack
-          currency: expense.currency,
+          currency: expense.currencyCode,
           category: expense.categoryId,
           paidBy: expense.paidById,
           paidFor: expense.paidFor.map(({ participant, shares }) => ({
@@ -122,11 +123,7 @@ export function ExpenseForm({
             (Number(searchParams.get('amount')) || 0) / 100,
           ) as unknown as number,
           currency:
-            searchParams.get('currency') ||
-            (activeUser &&
-              activeUser !== 'None' &&
-              localStorage?.getItem(activeUser + '-lastCurrency')) ||
-            '€',
+            searchParams.get('currency') || currencies[0]?.code || 'EUR',
           category: searchParams.get('categoryId')
             ? Number(searchParams.get('categoryId'))
             : 0, // category with Id 0 is General
@@ -211,9 +208,6 @@ export function ExpenseForm({
       <form
         className="pb-8"
         onSubmit={form.handleSubmit((values) => {
-          if (activeUser && activeUser !== 'None') {
-            localStorage?.setItem(activeUser + '-lastCurrency', values.currency)
-          }
           onSubmit(isCreate || saveAsNew, values, activeUser)
         })}
       >
@@ -314,7 +308,10 @@ export function ExpenseForm({
                 name="currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{field.value}</FormLabel>
+                    <FormLabel>
+                      {currencies.find((x) => x.code === field.value)?.symbol ||
+                        field.value}
+                    </FormLabel>
                     <FormControl>
                       <Select
                         onValueChange={(value: string) =>
@@ -329,7 +326,7 @@ export function ExpenseForm({
                           {currencies.map((currency) => (
                             <SelectItem
                               key={currency.code}
-                              value={currency.symbol}
+                              value={currency.code}
                             >
                               {currency.code}&nbsp;&nbsp;&nbsp;{currency.name}
                             </SelectItem>

@@ -3,13 +3,9 @@ import { cached } from '@/app/cached-functions'
 import { APIGroup, Balances } from '@/lib/api'
 import { cn, formatCurrency } from '@/lib/utils'
 
-type Props = {
-  group: APIGroup
-  currency: string
-  balances: Balances
-}
+type Props = { group: APIGroup; balances: Balances }
 
-export function Totals({ group, currency, balances }: Props) {
+export function Totals({ group, balances }: Props) {
   const activeUser = cached.getActiveUser(group.id)
 
   const totalSpendings = balances
@@ -18,6 +14,8 @@ export function Totals({ group, currency, balances }: Props) {
 
   const balance =
     activeUser && activeUser !== 'None' ? balances.get(activeUser) : undefined
+
+  const currency = balances.values().next().value?.currency.symbol || '?'
 
   return (
     <>

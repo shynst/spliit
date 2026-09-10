@@ -74,7 +74,7 @@ async function main() {
         expenses.push({
           id,
           amount: Math.round(expenseRow.amount * 100),
-          currency: groupRow.currency,
+          currencyCode: groupRow.currency,
           groupId: groupRow.id,
           title: expenseRow.description,
           categoryId: 1,

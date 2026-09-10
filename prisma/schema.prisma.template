@@ -9,6 +9,7 @@ datasource db {
   provider  = env("PRISMA_PROVIDER")
   url       = env("PRISMA_URL") // uses connection pooling
   directUrl = env("PRISMA_URL_NON_POOLING") // uses a direct connection
+  shadowDatabaseUrl = env("PRISMA_SHADOW_URL")
 }
 
 model Group {
@@ -37,19 +38,27 @@ model Category {
   Expense  Expense[]
 }
 
+model Currency {
+  code     String   @id @db.VarChar(5)
+  symbol   String   @db.VarChar(5)
+  name     String
+  Expense  Expense[]
+}
+
 model Expense {
   id            String            @id
   group         Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId       String
   expenseDate   DateTime          @default(dbgenerated("CURRENT_DATE")) @db.Date
   title         String
   category      Category?         @relation(fields: [categoryId], references: [id])
   categoryId    Int               @default(0)
   amount        Int
-  currency      String            @default("$") @db.VarChar(5)
+  currency      Currency          @relation(fields: [currencyCode], references: [code])
+  currencyCode  String            @db.VarChar(5) @default("EUR")
   paidBy        Participant       @relation("ExpensePayedBy", fields: [paidById], references: [id], onDelete: Cascade)
   paidById      String
   paidFor       ExpensePaidFor[]
-  groupId       String
   expenseState  ExpenseState      @default(CURRENT)
   expenseType   ExpenseType       @default(EXPENSE)
   splitMode     SplitMode         @default(EVENLY)
@@ -57,12 +66,12 @@ model Expense {
   createdBy     Participant?      @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdById   String?
   documents     ExpenseDocument[]
-  notes         String?
+  notes         String?           @db.Text
   prevVersion   Expense?          @relation("ExpenseHistory", fields: [prevVersionId], references: [id])
   nextVersion   Expense?          @relation("ExpenseHistory")
   prevVersionId String?           @unique
 
-  @@index([currency])
+  @@index([currencyCode])
   @@index([expenseState])
   @@index([expenseDate])
   @@index([createdAt])
