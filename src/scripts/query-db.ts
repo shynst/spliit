@@ -63,10 +63,40 @@ async function listExpensesForCatId(
   for (const { title, cost } of expenses) console.info(title, cost)
 }
 
+async function generate_immo_kosten_CSV() {
+  const expenses: {
+    date: Date
+    immo: string
+    title: string
+    paidBy: string
+    amount: number
+  }[] = await prisma.$queryRaw`SELECT
+        expenseDate AS date,
+        IF(categoryId=200, 'RW', 'UL') AS immo,
+        title,
+        p.name AS paidBy,
+        (amount/100 * IF(expenseType='INCOME', -1, 1)) AS amount
+      FROM Expense e
+      JOIN Participant p ON e.paidById = p.id
+        WHERE categoryId IN (200,201) AND e.groupId = ${group_id} AND expenseState='current' AND expenseType!='REIMBURSEMENT'
+        ORDER BY expenseDate`
+
+  expenses
+    .map(({ date, immo, title, paidBy, amount }) => [
+      date.toISOString().split('T')[0],
+      immo,
+      title,
+      paidBy === 'Johanna' ? '' : ';',
+      String(amount).replace('.', ','),
+    ])
+    .forEach((e) => console.info(e.join(';')))
+}
+
 async function main() {
-  await listExpenseSums('2024-01-01', '2025-01-01')
+  //await listExpenseSums('2024-01-01', '2025-01-01')
   // await listExpenseSums('2025-01-01', '2026-01-01')
-  await listExpensesForCatId(201, '2024-01-01', '2025-01-01')
+  //await listExpensesForCatId(201, '2024-01-01', '2025-01-01')
+  await generate_immo_kosten_CSV()
 }
 
 main().catch(console.error)
