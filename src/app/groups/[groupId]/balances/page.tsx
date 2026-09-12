@@ -14,6 +14,7 @@ import { Reimbursement, getSuggestedReimbursements } from '@/lib/balances'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import * as React from 'react'
+import { CategoryList } from './category-list'
 
 // cspell:ignore doesn
 
@@ -41,8 +42,7 @@ export default async function GroupPage(props: Props) {
   const multiCurrencies = balanceMap.size > 1
 
   const ListWithCurrency = ({ currency, children }: ListWithCurrencyProps) => {
-    const currencyName =
-      balanceMap.get(currency)?.values().next().value?.currency.name || currency
+    const currencyName = balanceMap.get(currency)?.currency.name || currency
 
     return multiCurrencies ? (
       <div className="ml-4">
@@ -121,6 +121,22 @@ export default async function GroupPage(props: Props) {
                     ))
                 )
               })()}
+            </CardContent>
+          </Card>
+          <Card className="max-sm:mt-0 max-sm:mb-0">
+            <CardHeader>
+              <CardTitle>Categories</CardTitle>
+              <CardDescription>Group expenses by category.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {balanceMap
+                .entries()
+                .toArray()
+                .map(([currency, balances]) => (
+                  <ListWithCurrency key={currency} currency={currency}>
+                    <CategoryList balances={balances} />
+                  </ListWithCurrency>
+                ))}
             </CardContent>
           </Card>
           <Card className="max-sm:mt-0">

@@ -32,12 +32,12 @@ function compareBalancesForReimbursements(
 export function getSuggestedReimbursements(
   balances: Balances,
 ): Reimbursement[] {
-  const balancesArray = balances
+  const balancesArray = balances.userBalances
     .entries()
-    .map(([participantId, { paidBy, paidFor, currency }]) => ({
+    .map(([participantId, { paidBy, paidFor }]) => ({
       participantId,
       amount: paidBy - paidFor,
-      currency,
+      currency: balances.currency,
     }))
     .filter((b) => b.amount !== 0)
     .toArray()

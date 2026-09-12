@@ -384,19 +384,24 @@ export interface UserBalance {
   groupAmount: number
   paidBy: number
   paidFor: number
-  currency: Currency
 }
-export type Balances = Map<string, UserBalance>
+export type UserBalanceMap = Map<string, UserBalance>
+export interface Balances {
+  currency: Currency
+  userBalances: UserBalanceMap
+  categoryBalances: Map<string, { amount: number; icon: string }>
+}
+export type BalancesMap = Map<string, Balances>
 
 export async function getBalancesByCurrency(groupId: string) {
-  const balances = new Map<string, Balances>()
+  const balances: BalancesMap = new Map()
 
   const currencyMap = new Map<string, { symbol: string; name: string }>()
   const c = await prisma.currency.findMany()
   c.forEach(({ code, symbol, name }) => currencyMap.set(code, { symbol, name }))
 
   const addPayments = async (
-    k: keyof Omit<UserBalance, 'currency'>,
+    k: keyof UserBalance,
     payments: Promise<
       {
         id: string
@@ -406,19 +411,25 @@ export async function getBalancesByCurrency(groupId: string) {
     >,
   ) =>
     (await payments).forEach(({ id, currencyCode, sum }) => {
-      const b = balances.get(currencyCode) ?? new Map()
-      const p = b.get(id) ?? {
-        groupAmount: 0,
-        paidBy: 0,
-        paidFor: 0,
+      const b = balances.get(currencyCode) ?? {
         currency: {
           code: currencyCode,
           ...(currencyMap.get(currencyCode) || { symbol: '?', name: '?' }),
         },
+        userBalances: new Map(),
+        categoryBalances: new Map(),
       }
+      balances.set(currencyCode, b)
+
+      const p = b.userBalances.get(id) ?? {
+        groupAmount: 0,
+        paidBy: 0,
+        paidFor: 0,
+      }
+      b.userBalances.set(id, p)
+
       p[k] += Number(sum)
       if (k === 'paidBy') p.groupAmount = p[k]
-      balances.set(currencyCode, b.set(id, p))
     })
 
   // add payments to paidBy and groupAmount
@@ -471,6 +482,25 @@ export async function getBalancesByCurrency(groupId: string) {
         ) x
         GROUP BY id, currencyCode`,
   )
+
+  for (const [currency, balance] of balances.entries()) {
+    const expenses: { category: string; icon: string; sum: string }[] =
+      await prisma.$queryRaw`SELECT
+            Category.name AS category,
+            Category.icon,
+            SUM(amount * IF(expenseType='INCOME', -1, 1)) AS sum
+          FROM Expense
+            JOIN Category ON Expense.categoryId = Category.id
+            WHERE groupId = ${groupId} AND expenseState = 'CURRENT' AND expenseType != 'REIMBURSEMENT' AND currencyCode = ${currency}
+            GROUP BY categoryId
+            ORDER BY sum DESC`
+
+    for (const e of expenses)
+      balance.categoryBalances.set(e.category, {
+        amount: Number(e.sum),
+        icon: e.icon,
+      })
+  }
 
   return balances
 }

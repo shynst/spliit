@@ -1,10 +1,7 @@
 import { APIExpense } from '@/lib/api'
 import { cn, formatExpenseDate } from '@/lib/utils'
-import { Category } from '@prisma/client'
 import * as lucide from 'lucide-react'
 import { HTMLAttributes } from 'react'
-
-type CatIcon = Pick<Category, 'id' | 'icon'>
 
 function getCategoryColor(id: number | undefined) {
   switch (Math.floor((id || 0) / 100)) {
@@ -27,7 +24,10 @@ export function CategoryIcon({
   category,
   coloredIcon,
   ...props
-}: { category: CatIcon | null; coloredIcon?: boolean } & lucide.LucideProps) {
+}: {
+  category: { id?: number; icon: string } | null
+  coloredIcon?: boolean
+} & lucide.LucideProps) {
   const Icon: lucide.LucideIcon =
     (category &&
       (lucide[category.icon as keyof typeof lucide] as lucide.LucideIcon)) ??

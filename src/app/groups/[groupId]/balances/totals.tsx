@@ -6,19 +6,22 @@ import { cn, formatCurrency } from '@/lib/utils'
 type Props = { group: APIGroup; balances: Balances }
 
 export function Totals({ group, balances }: Props) {
+  const userBalances = balances.userBalances
   const activeUser = cached.getActiveUser(group.id)
 
-  const totalSpendings = balances
+  const totalSpendings = userBalances
     .values()
     .reduce((sum, v) => sum + v.groupAmount, 0)
 
   const balance =
-    activeUser && activeUser !== 'None' ? balances.get(activeUser) : undefined
+    activeUser && activeUser !== 'None'
+      ? userBalances.get(activeUser)
+      : undefined
 
-  const currency = balances.values().next().value?.currency.symbol || '?'
+  const currency = balances.currency.symbol
 
   return (
-    <>
+    <div className="text-sm pb-3 sm:pb-2">
       <StatItem
         label="Group $balance"
         amount={totalSpendings}
@@ -42,7 +45,7 @@ export function Totals({ group, balances }: Props) {
           />
         </>
       )}
-    </>
+    </div>
   )
 }
 
@@ -58,7 +61,7 @@ function StatItem({ label, amount, currency, colored }: StatProps) {
   label = label.replaceAll('$balance', balance)
 
   return (
-    <div className="text-sm pb-4 flex justify-between">
+    <div className="text-sm pb-1 sm:pb-2 flex justify-between">
       <div>{label}</div>
       <div
         className={cn(

@@ -11,10 +11,10 @@ export function ReimbursementList({ group, reimbursements }: Props) {
     group.participants.find((p) => p.id === id)?.name || 'Someone'
 
   return (
-    <div className="text-sm">
+    <div className="text-sm pb-3 sm:pb-2">
       {reimbursements.map((r, index) => (
         <div
-          className="pb-4 grid grid-cols-[1fr_max-content_max-content]"
+          className="pb-1 sm:pb-2 grid grid-cols-[1fr_max-content_max-content]"
           key={index}
         >
           <div>
